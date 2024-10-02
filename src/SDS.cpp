@@ -8,6 +8,14 @@ SDS::SDS(char *c){
     for(int i=0;i<len;i++)
         buf[i]=c[i];
 }
+
+SDS::SDS(const SDS& sds){
+    len=sds.len;
+    free=sds.free;
+    buf=new char[len];
+    for(int i=0;i<len;i++)
+        buf[i]=sds.buf[i];
+}
 SDS::~SDS(){
     delete[] buf;
 }
