@@ -1,16 +1,18 @@
 #ifndef SDS_H
 #define SDS_H
-
-class SDS {
+#include "Value.h"
+class SDS : public Value{
 public:
+    SDS();
     SDS(char *c,int l=0,int r=-1);
     SDS(const SDS& sds);
     ~SDS();
     void addend(char *c);
     int expand(int l);
-    void copysds(const SDS& sds);
-    bool operator == (const SDS& other)
+    bool operator == (const SDS& other);
+    void refresh(char *c,int l=0,int r=-1);
     int len,free;
+    SDS& operator=(const SDS& other);
     char *buf;
 };
 

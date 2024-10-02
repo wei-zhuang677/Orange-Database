@@ -1,4 +1,10 @@
 #include "SDS.h"
+
+SDS::SDS(){
+    len=0;
+    free=0;
+    buf=new char[0];
+}
 SDS::SDS(char *c,int l=0,int r=-1){
     len=0;
     free=0;
@@ -6,6 +12,19 @@ SDS::SDS(char *c,int l=0,int r=-1){
         len++;
     if(r==-1)
         r=len;
+    buf=new char[len];
+    for(int i=l;i<r;i++)
+        buf[i]=c[i];
+}
+
+void SDS::refresh(char *c,int l=0,int r=-1){
+    len=0;
+    free=0;
+    while(c[len]!='\0')
+        len++;
+    if(r==-1)
+        r=len;
+    delete[] buf;
     buf=new char[len];
     for(int i=l;i<r;i++)
         buf[i]=c[i];
@@ -47,14 +66,6 @@ int SDS::expand(int l){
     return l;
 }
 
-void SDS::copysds(const SDS& sds){
-    len=sds.len;
-    free=sds.free;
-    delete[] buf;
-    buf=new char[len];
-    for(int i=0;i<len;i++)
-        buf[i]=sds.buf[i];
-}
 
 bool SDS::operator==(const SDS& other){
     if(len!=other.len)
@@ -64,4 +75,15 @@ bool SDS::operator==(const SDS& other){
             return 0;
     }
     return 1;
+}
+SDS::SDS& operator=(const SDS& sds){
+    if(this != &sds){
+        len=sds.len;
+        free=sds.free;
+        delete[] buf;
+        buf=new char[len+free];
+        for(int i=0;i<len;i++)
+            buf[i]=sds.buf[i];
+    }
+    return *this;
 }
