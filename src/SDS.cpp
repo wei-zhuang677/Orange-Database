@@ -11,7 +11,7 @@ SDS::SDS(char *c){
 SDS::~SDS(){
     delete[] buf;
 }
-int SDS:: length(){
+int SDS:: getlen(){
     return len;
 }
 
@@ -43,11 +43,14 @@ void SDS::addend(char *c){
         free-=clen;
 }
 
-void SDS::expand(int l){
+int SDS::expand(int l){
+    if(l<len)
+        return -1; 
     char *bbuf=new char[l];
     for(int i=0;i<len;i++)
         bbuf[i]=buf[i];
     delete[] buf;
     buf=bbuf;
     free=l-len;
+    return l;
 }
