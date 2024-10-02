@@ -30,10 +30,30 @@ int main()
     while(1)
       {
          printf("输入：");
-         scanf("%s",buf);
-         int ret=write(client,buf,strlen(buf)+1);
-         read(client,buf,BUFSIZ);
-        printf("返回：%s\n",buf);
+         int l=0;
+         while(1)
+         {
+            char c=getchar();
+        /*   if(c=='\\'){
+                buf[l]='\\';
+                l++;
+                buf[l]=getchar();
+                l++;
+            }*/ 
+            buf[l]=c;
+            if(c==';'){
+                int ret=write(client,buf,l);
+                read(client,buf,BUFSIZ);
+                printf("返回：%s\n",buf);
+            l=0;
+            }
+            l++;
+            
+            
+         }
+         
+        
+        
       }
       close(client);
 
