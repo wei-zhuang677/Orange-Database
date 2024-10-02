@@ -44,3 +44,12 @@ int SDS::expand(int l){
     free=l-len;
     return l;
 }
+
+void SDS::copysds(const SDS& sds){
+    len=sds.len;
+    free=sds.free;
+    delete[] buf;
+    buf=new char[len];
+    for(int i=0;i<len;i++)
+        buf[i]=sds.buf[i];
+}

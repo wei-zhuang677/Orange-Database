@@ -8,6 +8,7 @@ public:
     ~SDS();
     void addend(char *c);
     int expand(int l);
+    void copysds(const SDS& sds);
     int len,free;
     char *buf;
 };
