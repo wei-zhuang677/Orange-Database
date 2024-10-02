@@ -5,13 +5,8 @@ class SDS {
 public:
     SDS(char *c);
     ~SDS();
-    int getlen();
-    char get(int n);
-    int set(int n,char c);
     void addend(char *c);
     void expand(int l);
-
-private:
     int len,free;
     char *buf;
 };

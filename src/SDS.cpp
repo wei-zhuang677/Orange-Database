@@ -11,24 +11,6 @@ SDS::SDS(char *c){
 SDS::~SDS(){
     delete[] buf;
 }
-int SDS:: getlen(){
-    return len;
-}
-
-char SDS:: get(int n){
-    if(n>=len){
-        return '\0';
-    }
-    return buf[n];
-}
-
-int SDS::set(int n,char c){
-    if(n>=len){
-        return -1;
-    }
-    buf[n]=c;
-    return 0;
-}
 
 void SDS::addend(char *c){
         int clen=0;
