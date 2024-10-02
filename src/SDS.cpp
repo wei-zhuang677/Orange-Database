@@ -1,11 +1,13 @@
 #include "SDS.h"
-SDS::SDS(char *c){
+SDS::SDS(char *c,int l=0,int r=-1){
     len=0;
     free=0;
     while(c[len]!='\0')
         len++;
+    if(r==-1)
+        r=len;
     buf=new char[len];
-    for(int i=0;i<len;i++)
+    for(int i=l;i<r;i++)
         buf[i]=c[i];
 }
 
@@ -52,4 +54,14 @@ void SDS::copysds(const SDS& sds){
     buf=new char[len];
     for(int i=0;i<len;i++)
         buf[i]=sds.buf[i];
+}
+
+bool SDS::operator==(const SDS& other){
+    if(len!=other.len)
+        return 0;
+    for(int i=0;i<len;i++){
+        if(buf[i]!=other.buf[i])
+            return 0;
+    }
+    return 1;
 }
