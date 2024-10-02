@@ -4,9 +4,10 @@
 class SDS {
 public:
     SDS(char *c);
+    SDS(const SDS& sds);
     ~SDS();
     void addend(char *c);
-    void expand(int l);
+    int expand(int l);
     int len,free;
     char *buf;
 };
