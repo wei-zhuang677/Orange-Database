@@ -2,6 +2,8 @@
 #include <netinet/in.h>
 #include <unistd.h>
 #include<iostream>
+#include<SDS.h>
+#include<COMD.h>
 char buf[BUFSIZ];
 int strlen(char *str){
     int len=0;
@@ -40,6 +42,27 @@ int main()
     while(1)
     {
         int ret=read(client,buf,BUFSIZ);
+        int l=0,r=0;
+        COMD *first;
+        COMD *next;
+        COMD *comd;
+        frist=new COMD();
+        next=frist;
+        while(l!=';'){
+           /* if(buf[r]=='\\'){
+                r+=2;
+                continue;
+            }*/
+            if(buf[r]=='\n'){
+                comd=new COMD(buf,l,r,next);
+                l=r+1;
+            }
+            if(buf[r]==';'){
+                comd=new COMD(buf,l,r,next);
+                l=r+1;
+            }
+            r++;
+        }
         write(client,buf,strlen(buf)+1);
     }
     
