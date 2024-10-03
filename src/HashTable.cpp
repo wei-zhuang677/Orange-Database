@@ -1,5 +1,5 @@
 #include "HashTable.h"
-
+#include<iostream>
 HashTable::HashTable(){
     size=101;
     count=0;
@@ -45,7 +45,8 @@ void HashTable::insert(SDS &key, const Value& value) {
     Node* current = buckets[hash];
     while (current != nullptr) {
         if (current->key == key) {
-            *(current->value) = value; 
+            *(current->value) = value;
+            
             return;
         }
         current = current->next;
@@ -57,7 +58,8 @@ void HashTable::insert(SDS &key, const Value& value) {
     newNode->next = buckets[hash];
     buckets[hash] = newNode;
     count++;
-
+    key.print();
+    printf("Setting Success\n");
     if (count > size * 0.75) { 
         resize();
     }
@@ -91,4 +93,27 @@ void HashTable::resize() {
     delete[] buckets;
     buckets = newBuckets;
     size = newSize;
+}
+
+Value* HashTable::find(SDS& key){
+    int hash=hashCode(key);
+    Node* current = buckets[hash];
+    
+    while (current != nullptr) {
+
+        if (current->key == key) {
+            if(current->value->dl) 
+                break;
+            return current->value;
+        }
+        current = current->next;
+    }
+
+    perror("No value");
+    return nullptr;
+    
+}
+
+void HashTable::delet(SDS& key){
+    this->find(key)->dl=1;
 }

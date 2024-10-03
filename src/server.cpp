@@ -2,8 +2,9 @@
 #include <netinet/in.h>
 #include <unistd.h>
 #include<iostream>
-#include<SDS.h>
-#include<COMD.h>
+#include"SDS.h"
+#include"COMD.h"
+#include"HashTable.h"
 char buf[BUFSIZ];
 int strlen(char *str){
     int len=0;
@@ -18,11 +19,11 @@ int main()
          perror("Error creating socket");
         return -1;
     }
-
+    
     struct sockaddr_in server_address;
     int addrlen=sizeof(server_address);
     server_address.sin_family=AF_INET;
-    server_address.sin_port=htons(8000);
+    server_address.sin_port=htons(8888);
     server_address.sin_addr.s_addr=INADDR_ANY;
 
     if(bind(server,(struct sockaddr*)&server_address,addrlen)){
@@ -30,7 +31,6 @@ int main()
          close(server);
          return -1;
     }
-
     if(listen(server,1)<0)
     {
         perror("listen failed");
@@ -41,32 +41,53 @@ int main()
     int client=accept(server,NULL,NULL);
     while(1)
     {
+        printf("read succ\n");
+        char c=getchar();
+        if(c=='!')
+            break;
         int ret=read(client,buf,BUFSIZ);
         int l=0,r=0;
-        COMD *first;
-        COMD *next;
-        COMD *comd;
-        frist=new COMD();
-        next=frist;
-        while(l!=';'){
-           /* if(buf[r]=='\\'){
-                r+=2;
-                continue;
-            }*/
-            if(buf[r]=='\n'){
-                comd=new COMD(buf,l,r,next);
+        COMD *first=nullptr;
+        COMD *next=nullptr;
+        COMD *comd=nullptr;
+        first=new COMD();
+        next=first;
+        while(buf[l]!=';'){
+
+            if(buf[r]=='\n'&&r-l>2){
+                comd=new COMD(buf,l,r);
+                next->next=comd;
+                next=comd;
                 l=r+1;
+            
             }
             if(buf[r]==';'){
-                comd=new COMD(buf,l,r,next);
-                l=r+1;
+                comd=new COMD(buf,l,r);
+                next->next=comd;
+                next=comd;
+                l=r;
+            
             }
             r++;
         }
-        write(client,buf,strlen(buf)+1);
+        next=first;
+        first=first->next;
+        delete next;
+        while(first!=nullptr){
+            first->run();
+            next=first;
+            first=first->next;
+            delete next;
+        }
+        write(client,buf,ret); 
+        for(int i=0;i<ret;i++)
+            buf[i]='\0';
+        
     }
     
 
+    close(client);
+    close(server);
 
 
     

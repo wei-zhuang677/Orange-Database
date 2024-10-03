@@ -5,7 +5,7 @@ SDS::SDS(){
     free=0;
     buf=new char[0];
 }
-SDS::SDS(char *c,int l=0,int r=-1){
+SDS::SDS(const char* c,int l,int r){
     len=0;
     free=0;
     if(r==-1){ 
@@ -20,7 +20,7 @@ SDS::SDS(char *c,int l=0,int r=-1){
         buf[i-l]=c[i];
 }
 
-void SDS::refresh(char *c,int l=0,int r=-1){
+void SDS::refresh(char *c,int l,int r){
     len=0;
     free=0;
     if(r==-1){ 
@@ -82,7 +82,7 @@ bool SDS::operator==(const SDS& other){
     }
     return 1;
 }
-SDS::SDS& operator=(const SDS& sds)override{
+SDS& SDS:: operator=(const SDS& sds){
     if(this != &sds){
         len=sds.len;
         free=sds.free;
@@ -94,11 +94,17 @@ SDS::SDS& operator=(const SDS& sds)override{
     return *this;
 }
 
-void SDS::refresh(SDS& sds,int l=0,int r=0){
+void SDS::refresh(SDS& sds,int l,int r){
     len=r-l;
     free=0;
     delete[] buf;
     buf=new char[len];
     for(int i=l;i<r;i++)
         buf[i-l]=sds.buf[i];
+}
+
+void SDS::print(){
+    for(int i=0;i<len;i++)
+        printf("%c",buf[i]);
+    printf("\n");
 }

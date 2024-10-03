@@ -1,13 +1,19 @@
 #include "COMD.h"
-#include "SDS.h"
 #include<iostream>
+class COMD;
+const char strget[10] = "get";
+char strset[10] = "set";
+const char strdelete[10] = "delete";
+SDS com_get(strget);
+SDS com_set(strset);
+SDS com_delete(strdelete);
+HashTable datetable;
 COMD::COMD(){
     comd=nullptr;
     next=nullptr;
+  
 }
-COMD::COMD(char *buf,int l,int r,COMD *nex){
-    nex->next=this;
-    nex=this;
+COMD::COMD(char *buf,int l,int r){
     comd=new SDS(buf,l,r);
     int t=l;
     while(buf[t]!='(')
@@ -21,16 +27,53 @@ COMD::~COMD(){
 
 void COMD::run(){
     if (head == com_get) {
-        // code for get
+        get();
     } else if (head == com_set) {
-        // code for set
+        set();
     } else if (head == com_delete) {
         // code for delete
     } else {
         perror("Unknown command");
     }
 }
-const char strget[10] = "get";
-const char strset[10] = "set";
-const char strdelete[10] = "delete";
-SDS com_get(strget),com_get(strset),com_delete(strdelete);
+
+void COMD::set(){
+    int l=4,r=4;
+    comd->print();
+    while(comd->buf[r]!=','){
+        r++;
+    }
+    SDS key;
+    key.refresh(*comd,l,r);
+    SDS value;
+    l=++r;
+    while(comd->buf[r]==')'){
+        r++;
+    }
+    value.refresh(*comd,l,r);
+    key.print();
+    datetable.insert(key,value);
+}
+
+void COMD::get(){
+    int l=4,r=4;
+    while(comd->buf[r]!=')'){
+        r++;
+    }
+    SDS key;
+    key.refresh(*comd,l,r);
+    SDS* value=static_cast<SDS*>(datetable.find(key));
+    if(value!=nullptr){
+        value->print();
+    }
+}
+
+void COMD::delet(){
+    int l=4,r=4;
+    while(comd->buf[r]!=')'){
+        r++;
+    }
+    SDS key;
+    key.refresh(*comd,l,r);
+    datetable.delet(key);
+}

@@ -6,6 +6,9 @@ class HashTable {
 public:
     HashTable();
     ~HashTable();
+    void insert(SDS& key,const Value& value);
+    Value* find(SDS& key);
+    void delet(SDS& key);
 private:
     struct Node{
         Value* value;
@@ -15,9 +18,9 @@ private:
     Node** buckets;
     int size;
     int count;
-    unsigned int hashCode(SDS &key);
-    void insert(SDS& key,const Value& value);
+    unsigned int hashCode(SDS& key);
     void resize();
+
 };
 
 #endif
