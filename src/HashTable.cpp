@@ -1,5 +1,9 @@
 #include "HashTable.h"
+<<<<<<< HEAD
 #include<iostream>
+=======
+
+>>>>>>> 6a8603b0b1dcdef78a1e91f345385e33a42bddcc
 HashTable::HashTable(){
     size=101;
     count=0;

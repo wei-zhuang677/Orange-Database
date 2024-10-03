@@ -1,4 +1,5 @@
 #include "COMD.h"
+<<<<<<< HEAD
 #include<iostream>
 class COMD;
 const char strget[10] = "get";
@@ -14,6 +15,17 @@ COMD::COMD(){
   
 }
 COMD::COMD(char *buf,int l,int r){
+=======
+#include "SDS.h"
+#include<iostream>
+COMD::COMD(){
+    comd=nullptr;
+    next=nullptr;
+}
+COMD::COMD(char *buf,int l,int r,COMD *nex){
+    nex->next=this;
+    nex=this;
+>>>>>>> 6a8603b0b1dcdef78a1e91f345385e33a42bddcc
     comd=new SDS(buf,l,r);
     int t=l;
     while(buf[t]!='(')

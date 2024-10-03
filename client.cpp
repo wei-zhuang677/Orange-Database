@@ -18,7 +18,7 @@ int main()
 
     struct sockaddr_in client_address;
     client_address.sin_family=AF_INET;
-    client_address.sin_port=htons(8000);
+    client_address.sin_port=htons(8888);
     client_address.sin_addr.s_addr=INADDR_ANY;
 
     if(connect(client,(struct sockaddr*)&client_address,sizeof(client_address))<0){
@@ -34,25 +34,24 @@ int main()
          while(1)
          {
             char c=getchar();
-        /*   if(c=='\\'){
-                buf[l]='\\';
-                l++;
-                buf[l]=getchar();
-                l++;
-            }*/ 
+            if(c=='!')
+              break;
             buf[l]=c;
             if(c==';'){
-                int ret=write(client,buf,l);
-                read(client,buf,BUFSIZ);
-                printf("返回：%s\n",buf);
-            l=0;
+                buf[++l]='\0';
+                printf("%d\n",l);
+                write(client,buf,l+1);
+                int ret=read(client,buf,BUFSIZ);
+             //   printf("返回：%s    %d\n",buf,ret);
+                l=-1;
+                getchar();
+
             }
             l++;
             
-            
          }
          
-        
+        break;
         
       }
       close(client);
