@@ -3,7 +3,10 @@
 
 class Value {
 public:
-    virtual Value& operator=(const Value& other);
+    virtual Value& operator=(const Value& other){
+        return *this;
+    };
+    virtual ~Value(){};
 
 };
 
