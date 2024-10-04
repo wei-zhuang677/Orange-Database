@@ -1,5 +1,4 @@
 #include "HashTable.h"
-#include<iostream>
 HashTable::HashTable(){
     size=101;
     count=0;
@@ -111,25 +110,28 @@ Value* HashTable::find(SDS& key){
     
 }
 
-/*
 void HashTable::odbsave(){
-    ofstream outfile;
-    outfile.open("../save/save");
+    std::ofstream outfile;
+    outfile.open("./save/save");
+    if (!outfile.is_open()) {
+        std::cerr << "Failed to open the file for reading." << std::endl;
+        return;
+    }
     for(int i=0;i<size;i++){
         Node* node=buckets[i];
         while(node!=nullptr){
             Value* value=node->value;
             switch (value->tpye)
             {
-            case: 1
-                if(value->ld)
+            case 1:
+                if(value->sds.ld)
                     break;
                 outfile<<1<<';';
                 for(int i=0;i<node->key.len;i++)
                     outfile<<node->key.buf[i];
                 outfile<<';';
-                for(int i=0;i<value->len;i++)
-                    outfile<<value->buf[i];
+                for(int i=0;i<value->sds.len;i++)
+                    outfile<<value->sds.buf[i];
                 outfile<<';'<<'\n';
                 break;
             
@@ -139,17 +141,63 @@ void HashTable::odbsave(){
             node=node->next;
         }
     }
-
+    outfile<<'!';
     outfile.close();
-
-
+    printf("Odbsave finished\n");
 }
 
 void HashTable::odbload(){
-    ifstream infile; 
-    infile.open("../save/save"); 
+    std::ifstream infile; 
+    infile.open("./save/save"); 
+    if (!infile.is_open()) {
+        std::cerr << "Failed to open the file for reading." << std::endl;
+        return;
+    }
+    char type='\0';
+    char buf[BUFSIZ];
     
-    intfile.close();
+    infile.get(type);  
+    
+    while (type!='!')
+    {
+        printf("tyoe:%c  ",type);
+        switch (type)
+        {
+        case '1':{
+            int l=0;
+            char c;
+            infile.get(c);
+            infile.get(c);
+            while(c!=';'){
+                buf[l]=c;
+                l++;
+                infile.get(c);
+            }
+            SDS key(buf,0,l);
+            key.print();
+            l=0;
+            infile.get(c);
+            while(c!=';'){
+                buf[l]=c;
+                l++;
+                infile.get(c);
+            }
+            SDS sds(buf,0,l);
+            sds.print();
+            Value value(sds);
+            this->insert(key,value);
+            infile.get(c);
+            break;
+        }
+        default:
+            break;
+        }
+      
+        infile.get(type);
+    }
+    printf("Odbload finished\n");
+    
+    infile.close();
 
 
-}*/
+}

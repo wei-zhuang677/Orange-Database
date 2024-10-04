@@ -37,7 +37,8 @@ int main()
         close(server);
         return -1;
     }
-
+    COMD Comd;
+    Comd.odbload();
     int client=accept(server,NULL,NULL);
     while(1)
     {
@@ -52,13 +53,15 @@ int main()
         COMD *comd=nullptr;
         first=new COMD();
         next=first;
+     //   int num=0;
         while(buf[l]!=';'){
-
+//std::cout<<"first"<<"  "<<first<<"  "<<"first->next"<<"   "<<first->next<<std::endl;
             if(buf[r]=='\n'&&r-l>2){
                 comd=new COMD(buf,l,r);
                 next->next=comd;
                 next=comd;
                 l=r+1;
+             //   num++;
             
             }
             if(buf[r]==';'){
@@ -66,14 +69,20 @@ int main()
                 next->next=comd;
                 next=comd;
                 l=r;
+            //    num++;
             
             }
             r++;
         }
+        //std::cout<<"first"<<"  "<<first<<"  "<<"first->next"<<"   "<<first->next<<std::endl;
+       // std::cout<<"next"<<"  "<<next<<"  "<<"next->next"<<"   "<<next->next<<std::endl;
         next=first;
         first=first->next;
         delete next;
+      //  std::cout<<num<<std::endl;
         while(first!=nullptr){
+            
+            
             first->run();
             next=first;
             first=first->next;
@@ -85,7 +94,7 @@ int main()
         
     }
     
-
+    Comd.odbsave();
     close(client);
     close(server);
 

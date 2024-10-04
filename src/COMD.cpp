@@ -1,12 +1,16 @@
 #include "COMD.h"
 #include<iostream>
 class COMD;
-const char strget[10] = "get";
-char strset[10] = "set";
-const char strdelete[10] = "delete";
+const char strget[20] = "get";
+const char strset[20] = "set";
+const char strdelete[20] = "delete";
+const char dateodbsave[20]="odbsave";
+const char dateodbload[20]="odbload";
 SDS com_get(strget);
 SDS com_set(strset);
 SDS com_delete(strdelete);
+SDS com_odbsave(dateodbsave);
+SDS com_odbload(dateodbload);
 HashTable datetable;
 COMD::COMD(){
     comd=nullptr;
@@ -15,6 +19,7 @@ COMD::COMD(){
 }
 COMD::COMD(char *buf,int l,int r){
     comd=new SDS(buf,l,r);
+    next=nullptr;
     int t=l;
     while(buf[t]!='(')
         t++;
@@ -33,7 +38,11 @@ void COMD::run(){
         set();
     } else if (head == com_delete) {
         delet();
-    } else {
+    }else if(head == com_odbsave){
+        odbsave();
+    } else if(head == com_odbload){
+        odbload();
+    }else{
         perror("Illegal Input");
     }
 }
@@ -93,5 +102,16 @@ void COMD::delet(){
     Value* value=datetable.find(key);
     if(value!=nullptr&&!(value->sds.ld)&&value->tpye==1){
         value->sds.ld=1;
+        printf("delete finished\n");
     }
+}
+
+void COMD::odbsave(){
+    printf("saving\n");
+    datetable.odbsave();
+}
+
+void COMD::odbload(){
+    printf("loading\n");
+    datetable.odbload();
 }

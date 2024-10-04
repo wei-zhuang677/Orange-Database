@@ -16,6 +16,8 @@ public:
     void set();
     void get();
     void delet();
+    void odbsave();
+    void odbload();
 };
 
 #endif

@@ -3,15 +3,15 @@
 #include "Value.h"
 #include "SDS.h"
 #include<fstream>
+#include<iostream>
 class HashTable {
 public:
     HashTable();
     ~HashTable();
     void insert(SDS& key,const Value& value);
     Value* find(SDS& key);
- //   void delet(SDS& key);
-   // void odbsave();
-  //  void odbload();
+    void odbsave();
+    void odbload();
 private:
     struct Node{
         Value* value;
