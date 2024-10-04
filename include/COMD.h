@@ -2,6 +2,7 @@
 #define COMD_H
 #include "SDS.h"
 #include"HashTable.h"
+
 class COMD;
 class COMD {
 public:

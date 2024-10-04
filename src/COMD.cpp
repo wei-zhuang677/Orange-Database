@@ -1,5 +1,4 @@
 #include "COMD.h"
-<<<<<<< HEAD
 #include<iostream>
 class COMD;
 const char strget[10] = "get";
@@ -15,17 +14,6 @@ COMD::COMD(){
   
 }
 COMD::COMD(char *buf,int l,int r){
-=======
-#include "SDS.h"
-#include<iostream>
-COMD::COMD(){
-    comd=nullptr;
-    next=nullptr;
-}
-COMD::COMD(char *buf,int l,int r,COMD *nex){
-    nex->next=this;
-    nex=this;
->>>>>>> 6a8603b0b1dcdef78a1e91f345385e33a42bddcc
     comd=new SDS(buf,l,r);
     int t=l;
     while(buf[t]!='(')
@@ -38,54 +26,72 @@ COMD::~COMD(){
 }
 
 void COMD::run(){
+    //head.print();
     if (head == com_get) {
         get();
     } else if (head == com_set) {
         set();
     } else if (head == com_delete) {
-        // code for delete
+        delet();
     } else {
-        perror("Unknown command");
+        perror("Illegal Input");
     }
 }
 
 void COMD::set(){
     int l=4,r=4;
-    comd->print();
+   // comd->print();
     while(comd->buf[r]!=','){
         r++;
     }
     SDS key;
     key.refresh(*comd,l,r);
-    SDS value;
+    SDS sds;
     l=++r;
-    while(comd->buf[r]==')'){
+    while(comd->buf[r]!=')'){
         r++;
     }
-    value.refresh(*comd,l,r);
-    key.print();
+   // printf("L:%d R:%d ",l,r);
+    sds.refresh(*comd,l,r);
+    Value value(sds);
+  //  printf("value:");
+ //   sds.print();
+  //  printf("SET:");
+  //  value.sds.print();
+    
     datetable.insert(key,value);
 }
 
 void COMD::get(){
     int l=4,r=4;
+   // comd->print();
     while(comd->buf[r]!=')'){
         r++;
     }
+    
     SDS key;
     key.refresh(*comd,l,r);
-    SDS* value=static_cast<SDS*>(datetable.find(key));
-    if(value!=nullptr){
-        value->print();
+    Value* value=datetable.find(key);
+    if (value != nullptr&&value->tpye==1&&!(value->sds.ld)) {
+        printf("GET:");
+        value->sds.print();
+    } else {
+        perror("Value not found");
     }
+ 
 }
 
 void COMD::delet(){
-    int l=4,r=4;
+    int l=7,r=7;
+    //printf("Deleting\n");
     while(comd->buf[r]!=')'){
         r++;
     }
     SDS key;
     key.refresh(*comd,l,r);
-    datetable.delet(key);
+    //key.print();
+    Value* value=datetable.find(key);
+    if(value!=nullptr&&!(value->sds.ld)&&value->tpye==1){
+        value->sds.ld=1;
+    }
 }

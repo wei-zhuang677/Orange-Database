@@ -1,8 +1,7 @@
 #ifndef SDS_H
 #define SDS_H
-#include "Value.h"
 #include<iostream>
-class SDS : public Value{
+class SDS {
 public:
     void print();
      char *buf;
@@ -16,9 +15,8 @@ public:
     void refresh(char *c,int l=0,int r=-1);
     void refresh(SDS& sds,int l=0,int r=0);
     int len,free;
-   
     SDS& operator=(const SDS& other);
-    
+    bool ld=0;
     
 };
 

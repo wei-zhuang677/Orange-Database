@@ -1,9 +1,5 @@
 #include "HashTable.h"
-<<<<<<< HEAD
 #include<iostream>
-=======
-
->>>>>>> 6a8603b0b1dcdef78a1e91f345385e33a42bddcc
 HashTable::HashTable(){
     size=101;
     count=0;
@@ -50,7 +46,6 @@ void HashTable::insert(SDS &key, const Value& value) {
     while (current != nullptr) {
         if (current->key == key) {
             *(current->value) = value;
-            
             return;
         }
         current = current->next;
@@ -62,7 +57,7 @@ void HashTable::insert(SDS &key, const Value& value) {
     newNode->next = buckets[hash];
     buckets[hash] = newNode;
     count++;
-    key.print();
+    //key.print();
     printf("Setting Success\n");
     if (count > size * 0.75) { 
         resize();
@@ -106,18 +101,55 @@ Value* HashTable::find(SDS& key){
     while (current != nullptr) {
 
         if (current->key == key) {
-            if(current->value->dl) 
-                break;
             return current->value;
         }
         current = current->next;
     }
 
-    perror("No value");
+    //perror("No value");
     return nullptr;
     
 }
 
-void HashTable::delet(SDS& key){
-    this->find(key)->dl=1;
+/*
+void HashTable::odbsave(){
+    ofstream outfile;
+    outfile.open("../save/save");
+    for(int i=0;i<size;i++){
+        Node* node=buckets[i];
+        while(node!=nullptr){
+            Value* value=node->value;
+            switch (value->tpye)
+            {
+            case: 1
+                if(value->ld)
+                    break;
+                outfile<<1<<';';
+                for(int i=0;i<node->key.len;i++)
+                    outfile<<node->key.buf[i];
+                outfile<<';';
+                for(int i=0;i<value->len;i++)
+                    outfile<<value->buf[i];
+                outfile<<';'<<'\n';
+                break;
+            
+            default:
+                break;
+            }
+            node=node->next;
+        }
+    }
+
+    outfile.close();
+
+
 }
+
+void HashTable::odbload(){
+    ifstream infile; 
+    infile.open("../save/save"); 
+    
+    intfile.close();
+
+
+}*/

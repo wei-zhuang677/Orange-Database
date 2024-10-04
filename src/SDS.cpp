@@ -3,6 +3,7 @@
 SDS::SDS(){
     len=0;
     free=0;
+    ld=0;
     buf=new char[0];
 }
 SDS::SDS(const char* c,int l,int r){
@@ -39,6 +40,7 @@ void SDS::refresh(char *c,int l,int r){
 SDS::SDS(const SDS& sds){
     len=sds.len;
     free=sds.free;
+    ld=sds.ld;
     buf=new char[len];
     for(int i=0;i<len;i++)
         buf[i]=sds.buf[i];
@@ -86,6 +88,7 @@ SDS& SDS:: operator=(const SDS& sds){
     if(this != &sds){
         len=sds.len;
         free=sds.free;
+        ld=sds.ld;
         delete[] buf;
         buf=new char[len+free];
         for(int i=0;i<len;i++)
@@ -97,6 +100,7 @@ SDS& SDS:: operator=(const SDS& sds){
 void SDS::refresh(SDS& sds,int l,int r){
     len=r-l;
     free=0;
+    ld=sds.ld;
     delete[] buf;
     buf=new char[len];
     for(int i=l;i<r;i++)

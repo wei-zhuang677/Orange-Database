@@ -1,14 +1,14 @@
 #ifndef VALUE_H
 #define VALUE_H
-
-
+#include "SDS.h"
 class Value {
 public:
-    Value() = default;
-    Value(const Value& other) = default;
-    Value& operator=(const Value& other) = default;
-    virtual ~Value();
-    bool dl=0;
+    Value();
+    Value(const Value& value);
+    Value(SDS& sds);
+    Value& operator=(const Value& sds);
+    SDS sds;
+    int tpye=0;
 };
 
 #endif

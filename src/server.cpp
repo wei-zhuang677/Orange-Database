@@ -41,7 +41,7 @@ int main()
     int client=accept(server,NULL,NULL);
     while(1)
     {
-        printf("read succ\n");
+       // printf("read succ\n");
         char c=getchar();
         if(c=='!')
             break;
