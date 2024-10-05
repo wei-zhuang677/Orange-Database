@@ -21,6 +21,9 @@ public:
     void resave();
     void save();
     void odbluach();
+    void addr();
+    void addl();
+    void lindex();
 };
 
 #endif

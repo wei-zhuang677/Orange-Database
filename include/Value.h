@@ -1,13 +1,19 @@
 #ifndef VALUE_H
 #define VALUE_H
+
 #include "SDS.h"
+#include"List.h"
 class Value {
 public:
     Value();
     Value(const Value& value);
+    Value(List& list);
     Value(SDS& sds);
+    ~Value();
     Value& operator=(const Value& sds);
-    SDS sds;
+    SDS* sds;
+    List* list;
+   // SDS* key;
     int tpye=0;
 };
 

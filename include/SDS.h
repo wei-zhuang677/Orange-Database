@@ -16,7 +16,6 @@ public:
     void refresh(SDS& sds,int l=0,int r=0);
     int len,free;
     SDS& operator=(const SDS& other);
-    bool ld=0;
     
 };
 

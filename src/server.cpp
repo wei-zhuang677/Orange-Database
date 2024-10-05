@@ -39,11 +39,11 @@ int main()
     }
     COMD Comd;
     Comd.odbload();
-    Comd.odbluach();
     int client=accept(server,NULL,NULL);
+    Comd.odbluach();
     while(1)
     {
-       // printf("read succ\n");
+        printf("read succ\n");
         char c=getchar();
         if(c=='!')
             break;
@@ -58,7 +58,7 @@ int main()
         while(buf[l]!=';'){
 //std::cout<<"first"<<"  "<<first<<"  "<<"first->next"<<"   "<<first->next<<std::endl;
             if(buf[r]=='\n'&&r-l>2){
-                comd=new COMD(buf,l,r);
+                comd=new COMD(buf,l,r+1);
                 next->next=comd;
                 next=comd;
                 l=r+1;
@@ -66,7 +66,7 @@ int main()
             
             }
             if(buf[r]==';'){
-                comd=new COMD(buf,l,r);
+                comd=new COMD(buf,l,r+1);
                 next->next=comd;
                 next=comd;
                 l=r;
