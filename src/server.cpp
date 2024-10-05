@@ -39,6 +39,7 @@ int main()
     }
     COMD Comd;
     Comd.odbload();
+    Comd.odbluach();
     int client=accept(server,NULL,NULL);
     while(1)
     {

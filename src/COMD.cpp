@@ -4,13 +4,17 @@ class COMD;
 const char strget[20] = "get";
 const char strset[20] = "set";
 const char strdelete[20] = "delete";
-const char dateodbsave[20]="odbsave";
+const char dateodbsave[20]="SAVE";
 const char dateodbload[20]="odbload";
+const char dateresave[20]="RESAVE";
+const char save[20]="save";
 SDS com_get(strget);
 SDS com_set(strset);
 SDS com_delete(strdelete);
 SDS com_odbsave(dateodbsave);
 SDS com_odbload(dateodbload);
+SDS com_resave(dateresave);
+SDS com_save(save);
 HashTable datetable;
 COMD::COMD(){
     comd=nullptr;
@@ -42,6 +46,10 @@ void COMD::run(){
         odbsave();
     } else if(head == com_odbload){
         odbload();
+    }else if(head ==com_resave){
+        resave();
+    }else if(head ==com_save){
+        save();
     }else{
         perror("Illegal Input");
     }
@@ -108,10 +116,35 @@ void COMD::delet(){
 
 void COMD::odbsave(){
     printf("saving\n");
-    datetable.odbsave();
+    std::thread t(&HashTable::odbsave,&datetable);
+    t.join();
 }
 
 void COMD::odbload(){
     printf("loading\n");
     datetable.odbload();
+}
+
+void COMD::resave(){
+    printf("saving\n");
+    std::thread t(&HashTable::odbsave,&datetable);
+    t.detach();
+}
+void COMD::odbluach(){
+    std::thread t(&HashTable::checkAndSave,&datetable);
+    t.detach();
+}
+
+void COMD::save(){
+    int l=5,r=5,a=0,b=0;
+    while(comd->buf[r]!=','){
+        a=a*10+(int)comd->buf[r]-48;
+        r++;
+    }
+    l=++r;
+    while(comd->buf[r]!=')'){
+        b=b*10+(int)comd->buf[r]-48;
+        r++;
+    }
+    datetable.updateConfig(a,b);
 }

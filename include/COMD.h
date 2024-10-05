@@ -2,7 +2,7 @@
 #define COMD_H
 #include "SDS.h"
 #include"HashTable.h"
-
+#include<thread>
 class COMD;
 class COMD {
 public:
@@ -18,6 +18,9 @@ public:
     void delet();
     void odbsave();
     void odbload();
+    void resave();
+    void save();
+    void odbluach();
 };
 
 #endif

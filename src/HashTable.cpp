@@ -2,6 +2,9 @@
 HashTable::HashTable(){
     size=101;
     count=0;
+    savedKeysCount=0;
+    interval=20;
+    threshold=5;
     buckets = new Node*[size];
     for(int i=0;i<size;i++){
         buckets[i]=nullptr;
@@ -45,6 +48,7 @@ void HashTable::insert(SDS &key, const Value& value) {
     while (current != nullptr) {
         if (current->key == key) {
             *(current->value) = value;
+            savedKeysCount++;
             return;
         }
         current = current->next;
@@ -96,7 +100,7 @@ void HashTable::resize() {
 Value* HashTable::find(SDS& key){
     int hash=hashCode(key);
     Node* current = buckets[hash];
-    
+    savedKeysCount++;
     while (current != nullptr) {
 
         if (current->key == key) {
@@ -112,11 +116,14 @@ Value* HashTable::find(SDS& key){
 
 void HashTable::odbsave(){
     std::ofstream outfile;
-    outfile.open("./save/save");
+    outfile.open("./save/save.odb");
     if (!outfile.is_open()) {
         std::cerr << "Failed to open the file for reading." << std::endl;
         return;
     }
+    mtx.lock();
+    outfile<<0<<' '<<interval<<' '<<threshold<<'\n';
+    mtx.unlock();
     for(int i=0;i<size;i++){
         Node* node=buckets[i];
         while(node!=nullptr){
@@ -134,7 +141,6 @@ void HashTable::odbsave(){
                     outfile<<value->sds.buf[i];
                 outfile<<';'<<'\n';
                 break;
-            
             default:
                 break;
             }
@@ -148,16 +154,18 @@ void HashTable::odbsave(){
 
 void HashTable::odbload(){
     std::ifstream infile; 
-    infile.open("./save/save"); 
+    infile.open("./save/save.odb"); 
     if (!infile.is_open()) {
         std::cerr << "Failed to open the file for reading." << std::endl;
         return;
     }
     char type='\0';
     char buf[BUFSIZ];
-    
+    mtx.lock();
+    infile>>type>>interval>>threshold;
+    mtx.unlock();
     infile.get(type);  
-    
+    printf("tyoe:%c  ",type);
     while (type!='!')
     {
         printf("tyoe:%c  ",type);
@@ -200,4 +208,35 @@ void HashTable::odbload(){
     infile.close();
 
 
+}
+
+void HashTable::checkAndSave() {
+
+    while (true) {
+        int a=interval,b=threshold;
+        std::this_thread::sleep_for(std::chrono::seconds(interval));
+        mtx.lock();
+        printf("checking\n");
+        if(a==interval&&b==threshold&&b<=savedKeysCount){
+            mtx.unlock();
+            printf("saving\n");
+            std::thread t(&HashTable::odbsave,this);
+            t.detach();
+        }
+        else{
+            mtx.unlock();
+            a=interval;
+            b=threshold;
+        }
+        savedKeysCount=0;
+        
+    }
+}
+
+void HashTable::updateConfig(int a,int b){
+    mtx.lock();
+    interval=a;
+    threshold=b;
+    mtx.unlock();
+    printf("Updateconfig finished\n");
 }
