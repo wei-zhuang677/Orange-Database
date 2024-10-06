@@ -1,6 +1,7 @@
 #ifndef HASHTABLE_H
 #define HASHTABLE_H
 #include "Value.h"
+#include"List.h"
 #include "SDS.h"
 #include<fstream>
 #include<iostream>

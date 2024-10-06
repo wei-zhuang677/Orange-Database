@@ -6,13 +6,13 @@ HashTable::HashTable(){
     interval=20;
     threshold=5;
     buckets = new Node*[size];
-    for(int i=0;i<size;i++){
-        buckets[i]=nullptr;
+    for(int j=0;j<size;j++){
+        buckets[j]=nullptr;
     }
 }
 HashTable::~HashTable() {
-    for (int i = 0; i < size; ++i) {
-        Node* current = buckets[i];
+    for (int j = 0; j < size; ++j) {
+        Node* current = buckets[j];
         while (current != nullptr) {
             Node* next = current->next;
             delete current->value;
@@ -28,8 +28,8 @@ unsigned int HashTable::hashCode(SDS &key){
     unsigned int seed = 0x9747b28c;
     unsigned int hash = seed ^ len;
 
-    for(unsigned int i=0;i<len;i++){
-        unsigned int k = key.buf[i];
+    for(unsigned int j=0;j<len;j++){
+        unsigned int k = key.buf[j];
         hash *= 0x9e3779b1;
         hash ^= (k * hash) + (hash >> 16);
         hash *= 0x85ebca6b;
@@ -65,7 +65,7 @@ void HashTable::insert(SDS &key, const Value& value) {
     buckets[hash] = newNode;
     count++;
     
-    printf("Setting Success\n");
+    printf("Setting Successc\n");
     if (count > size * 0.75) { 
         resize();
     }
@@ -74,12 +74,12 @@ void HashTable::insert(SDS &key, const Value& value) {
 void HashTable::resize() {
     int newSize = size * 2;
     Node** newBuckets = new Node*[newSize];
-    for (int i = 0; i < newSize; ++i) {
-        newBuckets[i] = nullptr;
+    for (int j = 0; j < newSize; ++j) {
+        newBuckets[j] = nullptr;
     }
 
-    for (int i = 0; i < size; ++i) {
-        Node* current = buckets[i];
+    for (int j = 0; j < size; ++j) {
+        Node* current = buckets[j];
         while (current != nullptr) {
             int newHash = hashCode(current->key) % newSize;
             Node* next = current->next;
@@ -130,26 +130,39 @@ void HashTable::odbsave(){
     mtx.lock();
     outfile<<0<<' '<<interval<<' '<<threshold<<'\n';
     mtx.unlock();
+        printf("Odbsave finished\n");
     for(int i=0;i<size;i++){
         Node* node=buckets[i];
         while(node!=nullptr){
             Value* value=node->value;
-            if(!(value->tpye)){
+            if(value->tpye){
             switch (value->tpye)
             {
-            case 1:
+            case 1:{
                 outfile<<1<<';';
-                for(int i=0;i<node->key.len;i++)
-                    outfile<<node->key.buf[i];
+                for(int j=0;j<node->key.len;j++)
+                    outfile<<node->key.buf[j];
                 outfile<<';';
-                for(int i=0;i<value->sds->len;i++)
-                    outfile<<value->sds->buf[i];
+                for(int j=0;j<value->sds->len;j++)
+                    outfile<<value->sds->buf[j];
                 outfile<<';'<<'\n';
                 break;
-            
-            case 2:
+            }
+            case 2:{
                 outfile<<2<<';';
-                
+                for(int j=0;j<node->key.len;j++)
+                    outfile<<node->key.buf[j];
+                outfile<<';';
+                List::Node* head=value->list->head;
+                while(head!=nullptr){
+                    for(int j=0;j<head->value->len;j++){
+                        outfile<<head->value->buf[j];
+                    }
+                    outfile<<';';
+                    head=head->next;
+                }
+                outfile<<'\n';
+                break;}
             default:
                 break;
             }
@@ -159,7 +172,7 @@ void HashTable::odbsave(){
     }
     outfile<<'!';
     outfile.close();
-    printf("Odbsave finished\n");
+
 }
 
 void HashTable::odbload(){
@@ -178,7 +191,7 @@ void HashTable::odbload(){
   //  printf("tyoe:%c  ",type);
     while (type!='!')
     {
-   //     printf("tyoe:%c  ",type);
+    //    printf("tyoe:%c  ",type);
         switch (type)
         {
         case '1':{
@@ -192,7 +205,7 @@ void HashTable::odbload(){
                 infile.get(c);
             }
             SDS key(buf,0,l);
-         //   key.print();
+           // key.print();
             l=0;
             infile.get(c);
             while(c!=';'){
@@ -207,14 +220,48 @@ void HashTable::odbload(){
             infile.get(c);
             break;
         }
-        default:
+        case '2':{
+            int l=0;
+            char c;
+            infile.get(c);
+            infile.get(c);
+            while(c!=';'){
+                buf[l]=c;
+                l++;
+                infile.get(c);
+            }
+            SDS key(buf,0,l);
+            
+            infile.get(c);
+            List* list=new List();
+            while(c!='\n'){
+                l=0;
+                
+                while(c!=';'){
+                    buf[l]=c;
+                   l++;
+                   infile.get(c);
+                }
+                SDS sds(buf,0,l);
+                list->addr(sds);
+             //   sds.print();
+                infile.get(c);
+            }
+            Value value(*list);
+            this->insert(key,value); 
+            delete list;
             break;
         }
-      
+        default:{
+           break;
+        }
+            
+        }
+    
         infile.get(type);
     }
-    printf("Odbload finished\n");
     
+      
     infile.close();
 
 

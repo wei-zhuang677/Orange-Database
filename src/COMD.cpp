@@ -1,6 +1,7 @@
 #include "COMD.h"
 #include<iostream>
 class COMD;
+
 const char strget[20] = "get";
 const char strset[20] = "set";
 const char strdelete[20] = "delete";
@@ -11,6 +12,9 @@ const char save[20]="save";
 const char addl[20]="addl";
 const char addr[20]="addr";
 const char lindex[20]="lindex";
+const char lrange[20]="lrange";
+const char popr[20]="popr";
+const char popl[20]="popl";
 SDS com_get(strget);
 SDS com_set(strset);
 SDS com_delete(strdelete);
@@ -21,6 +25,9 @@ SDS com_save(save);
 SDS com_addr(addr);
 SDS com_addl(addl);
 SDS com_lindex(lindex);
+SDS com_lrange(lrange);
+SDS com_popr(popr);
+SDS com_popl(popl);
 HashTable datetable;
 COMD::COMD(){
     comd=nullptr;
@@ -41,7 +48,7 @@ COMD::~COMD(){
 }
 
 void COMD::run(){
-    //head.print();
+   // head.print();
     if (head == com_get) {
         get();
     } else if (head == com_set) {
@@ -62,7 +69,16 @@ void COMD::run(){
         addr();
     }else if(head ==com_lindex){
         lindex();
-    }else{
+    }else if(head==com_lrange){
+        lrange();
+    }else if(head==com_popr){
+        popr();
+    }
+    else if(head==com_popl){
+        popl();
+    }
+    else
+    {
         perror("Illegal Input");
     }
 }
@@ -92,7 +108,7 @@ void COMD::set(){
           datetable.insert(key,value);
     }
     else{
-         perror("That is not a list.Pleaes delete frist");
+         perror("That is not a SDS.Pleaes delete frist");
     }
 }
 
@@ -205,7 +221,7 @@ void COMD::addl(){
 
 void COMD::addr(){
     int l=5,r=5;
-   // comd->print();
+    
     while(comd->buf[r]!=','){
         r++;
     }
@@ -241,7 +257,6 @@ void COMD::lindex(){
     int l=7,r=7;
     int index=0;
     while(comd->buf[r]!=','){
-      
         r++;
     }
     SDS key;
@@ -259,9 +274,121 @@ void COMD::lindex(){
         return;
     }
     if(value->tpye==2){
-        value->list->lindex(index)->print();
+        List::Node* node=value->list->lindex(index);
+        if(node!=nullptr){
+            node->value->print();
+        }
     }
     else{
         perror("That is not a list");
     }
+}
+
+void COMD::lrange(){
+    int l=7,r=7;
+    int start=0,stop=0;
+    while(comd->buf[r]!=','){
+        r++;
+    }
+    SDS key;
+    key.refresh(*comd,l,r); 
+    l=++r;
+    while(comd->buf[r]!=','){
+      start=start*10+(int)comd->buf[r]-48;
+        r++;
+    }
+    l=++r;
+    while(comd->buf[r]!=')'){
+      stop=stop*10+(int)comd->buf[r]-48;
+        r++;
+    }
+    if(start>stop){
+        perror("Start is bigger than stop");
+        return;
+    }
+    Value* value=datetable.find(key);
+    if(value==nullptr||value->tpye==0)
+    {
+        perror("Value not exist");
+        return;
+    }
+    if(value->tpye==2){
+        if(stop>=value->list->len){
+            perror("List is not enough");
+            return;
+        }
+        List::Node* node=value->list->lindex(start);
+        printf("List:\n");
+        for(int i=start;i<=stop;i++){
+            node->value->print();
+            node=node->next;
+        }
+    }
+    else{
+        perror("That is not a list");
+    }
+}
+
+void COMD::popr(){
+    int l=5,r=5; 
+    while(comd->buf[r]!=')'){
+        r++;
+    }
+    SDS key;
+    key.refresh(*comd,l,r);
+    Value* value=datetable.find(key);
+    if(value==nullptr||value->tpye==0){
+        perror("Value not exist");
+        return;
+    }
+    else{
+        if(value->tpye==2){
+            if(value->list->len>0){
+                Value nvalue(*value->list);
+             //   nvalue.list->print();
+                nvalue.list->popr();
+                datetable.insert(key,nvalue);
+            }
+            else{
+                perror("This list is empty");
+            }
+        }
+        else{
+            perror("That is not a list");
+        }
+    }
+    
+    
+}
+
+void COMD::popl(){
+    int l=5,r=5; 
+    while(comd->buf[r]!=')'){
+        r++;
+    }
+    SDS key;
+    key.refresh(*comd,l,r);
+    Value* value=datetable.find(key);
+    if(value==nullptr||value->tpye==0){
+        perror("Value not exist");
+        return;
+    }
+    else{
+        if(value->tpye==2){
+            if(value->list->len>0){
+                Value nvalue(*value->list);
+//                nvalue.list->print();
+                nvalue.list->popl();
+                datetable.insert(key,nvalue);
+            }
+            else{
+                perror("This list is empty");
+            }
+        }
+        else{
+            perror("That is not a list");
+        }
+    }
+    
+    
 }

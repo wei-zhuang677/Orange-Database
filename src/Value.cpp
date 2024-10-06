@@ -15,6 +15,7 @@ Value::Value(SDS& sds){
 
 Value::Value(List& list){
     this->list=new List(list);
+  
     sds=nullptr;
     tpye=2;
 }
@@ -47,22 +48,25 @@ Value::~Value(){
 
 Value& Value::operator=(const Value& value){
     if(this!=&value){
-    delete sds;
-    delete list;
+    delete this->sds;
+    this->sds=nullptr;
+    delete this->list;
+    this->list=nullptr;
     tpye=value.tpye;
     switch (tpye)
     {
-    case 1:
+    case 1:{
         this->sds=new SDS(*value.sds);
         list=nullptr;
         tpye=1;
-        break;
-    case 2:
+        break;}
+    case 2:{
         this->list=new List(*value.list);
         sds=nullptr;
         tpye=2;
- //   case 0:
-       // sds= new SDS(*(value.sds));
+        break;
+        }
+        
     default:
         break;
     }

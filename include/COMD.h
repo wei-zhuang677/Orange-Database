@@ -2,6 +2,7 @@
 #define COMD_H
 #include "SDS.h"
 #include"HashTable.h"
+#include"List.h"
 #include<thread>
 class COMD;
 class COMD {
@@ -24,6 +25,9 @@ public:
     void addr();
     void addl();
     void lindex();
+    void lrange();
+    void popr();
+    void popl();
 };
 
 #endif

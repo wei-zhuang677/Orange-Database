@@ -43,7 +43,7 @@ int main()
     Comd.odbluach();
     while(1)
     {
-        printf("read succ\n");
+      //  printf("read succ\n");
         char c=getchar();
         if(c=='!')
             break;

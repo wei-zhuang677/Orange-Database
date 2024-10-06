@@ -9,9 +9,10 @@ List::List(){
 List::~List(){
     Node* current=head;
     while(current!=nullptr){
+       // std::cout<<current<<"  "<<current->next<<std::endl;
         Node* next=current->next;
         delete current->value;
-        delete current->next;
+        delete current;
         current =next;
         
     }
@@ -23,18 +24,9 @@ List::List(List& list){
     len=0;
     Node* onode=list.head;
     while(onode!=nullptr){
-        Node* node=new Node;
-        if(tail==nullptr){
-        tail=head=node;
-        }
-        else{
-            tail->next=node;
-            node->prev=tail;
-            tail=node;
-        }
-        node->value=new SDS(*(onode->value));
+        this->addr(*onode->value);
+    //    onode->value->print();
         onode=onode->next;
-        len++;
     }
 }
 void List::addr(SDS& value){
@@ -65,7 +57,7 @@ void List::addl(SDS& value){
     len++;
 }
 
-SDS* List::lindex(int index){
+List::Node* List::lindex(int index){
     if(index>=len||index<0)
         return nullptr;
     Node* current=head;
@@ -74,5 +66,33 @@ SDS* List::lindex(int index){
             current=current->next;
         }
     }
-    return current->value;
+    return current;
+}
+
+void List::popr(){
+    if(len==0)
+        return;
+    tail=tail->prev;
+    delete tail->next;
+    tail->next=nullptr;
+   // this->print();
+    //printf("pop finished\n");
+}
+
+void List::popl(){
+    if(len==0)
+        return;
+    head=head->next;
+    delete head->prev;
+    head->prev=nullptr;
+    //this->print();
+}
+
+void List::print(){
+    printf("List:\n");
+    Node* node=head;
+    while(node!=nullptr){
+        node->value->print();
+        node=node->next;
+    }
 }

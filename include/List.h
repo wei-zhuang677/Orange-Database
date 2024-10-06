@@ -1,6 +1,7 @@
 #ifndef LIST_H
 #define LIST_H
 #include"SDS.h"
+#include<iostream>
 class List {
 public:
     List();
@@ -16,7 +17,10 @@ public:
     Node* tail;
     void addl(SDS& value);
     void addr(SDS& value);
-    SDS* lindex(int index);
+    void popr();
+    void popl();
+    Node* lindex(int index);
+    void print();
     int len;
 };
 
