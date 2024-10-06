@@ -15,6 +15,8 @@ const char lindex[20]="lindex";
 const char lrange[20]="lrange";
 const char popr[20]="popr";
 const char popl[20]="popl";
+const char hget[20]="hget";
+const char hset[20]="hset";
 SDS com_get(strget);
 SDS com_set(strset);
 SDS com_delete(strdelete);
@@ -28,7 +30,9 @@ SDS com_lindex(lindex);
 SDS com_lrange(lrange);
 SDS com_popr(popr);
 SDS com_popl(popl);
-HashTable datetable;
+SDS com_hset(hset);
+SDS com_hget(hget);
+DateTable datetable;
 COMD::COMD(){
     comd=nullptr;
     next=nullptr;
@@ -48,7 +52,7 @@ COMD::~COMD(){
 }
 
 void COMD::run(){
-   // head.print();
+   //head.print();
     if (head == com_get) {
         get();
     } else if (head == com_set) {
@@ -76,9 +80,11 @@ void COMD::run(){
     }
     else if(head==com_popl){
         popl();
-    }
-    else
-    {
+    }else if(head==com_hset){
+        hset(); 
+    }else if(head==com_hget){
+        hget();
+    }else{
         perror("Illegal Input");
     }
 }
@@ -104,7 +110,7 @@ void COMD::set(){
   //  printf("SET:");
   //  value.sds.print();
     Value* vvalue=datetable.find(key);
-    if(vvalue==nullptr||vvalue->tpye==1){
+    if(vvalue==nullptr||vvalue->tpye==1||value.tpye==0){
           datetable.insert(key,value);
     }
     else{
@@ -142,8 +148,8 @@ void COMD::delet(){
     //key.print();
     Value* value=datetable.find(key);
     if(value!=nullptr){
-        value= new Value();
-        datetable.insert(key,*(value));
+        Value value;
+        datetable.insert(key,value);
     }
     else{
         perror("Value not exist");
@@ -152,7 +158,7 @@ void COMD::delet(){
 
 void COMD::odbsave(){
     printf("saving\n");
-    std::thread t(&HashTable::odbsave,&datetable);
+    std::thread t(&DateTable::odbsave,&datetable);
     t.join();
 }
 
@@ -163,11 +169,11 @@ void COMD::odbload(){
 
 void COMD::resave(){
     printf("saving\n");
-    std::thread t(&HashTable::odbsave,&datetable);
+    std::thread t(&DateTable::odbsave,&datetable);
     t.detach();
 }
 void COMD::odbluach(){
-    std::thread t(&HashTable::checkAndSave,&datetable);
+    std::thread t(&DateTable::checkAndSave,&datetable);
     t.detach();
 }
 
@@ -200,16 +206,19 @@ void COMD::addl(){
     }
     sds.refresh(*comd,l,r);
     Value* value=datetable.find(key);
-    if(value==nullptr){
+    if(value==nullptr||value->tpye==0){
         List list;
         list.addl(sds);
-        value=new Value(list);
+        Value nvalue(list);
         datetable.insert(key,*value);
     }
     else
     {
         if(value->tpye==2){
-            value->list->addl(sds);
+            List list(*value->list);
+            list.addl(sds);
+            Value nvalue(list);
+            datetable.insert(key,*value);
         }
         else{
             perror("That is not a list.Pleaes delete frist");
@@ -234,16 +243,19 @@ void COMD::addr(){
     }
     sds.refresh(*comd,l,r);
     Value* value=datetable.find(key);
-    if(value==nullptr){
+    if(value==nullptr||value->tpye==0){
         List list;
         list.addr(sds);
-        value=new Value(list);
+        Value nvalue(list);
         datetable.insert(key,*value);
     }
     else
     {
         if(value->tpye==2){
-            value->list->addr(sds);
+            List list(*value->list);
+            list.addr(sds);
+            Value nvalue(list);
+            datetable.insert(key,*value);
         }
         else{
             perror("That is not a list.Pleaes delete frist");
@@ -277,6 +289,9 @@ void COMD::lindex(){
         List::Node* node=value->list->lindex(index);
         if(node!=nullptr){
             node->value->print();
+        }
+        else{
+            perror("Value not exist");
         }
     }
     else{
@@ -318,6 +333,10 @@ void COMD::lrange(){
             return;
         }
         List::Node* node=value->list->lindex(start);
+        if(node==nullptr){
+            perror("Wrong start");
+            return;
+        }
         printf("List:\n");
         for(int i=start;i<=stop;i++){
             node->value->print();
@@ -386,9 +405,80 @@ void COMD::popl(){
             }
         }
         else{
-            perror("That is not a list");
+            perror("This is not a list");
         }
     }
     
+}
+
+void COMD::hset(){
+    int l=5,r=5;
+    while(comd->buf[r]!=','){
+        r++;
+    }
+    SDS key;
+    key.refresh(*comd,l,r);
+    Value* value=datetable.find(key);
+    l=++r;
+    while(comd->buf[r]!=','){
+        r++;
+    }
+    SDS field;
+    field.refresh(*comd,l,r);
+    l=++r;
+    while(comd->buf[r]!=')'){
+        r++;
+    }
+    SDS sds;
+    sds.refresh(*comd,l,r);
+    if(value==nullptr||value->tpye==0){
+        HashTable hashtable;
+        hashtable.insert(field,sds);
+        Value nvalue(hashtable);
+        datetable.insert(key,nvalue);
+    }
+    else{
+        if(value->tpye==3){
+            HashTable hashtable(*value->hashtable);
+            hashtable.insert(field,sds);
+            Value nvalue(hashtable);
+            datetable.insert(key,nvalue);
+        }
+        else{
+            perror("This is not a HashTable");
+        }
+    }
     
+
+}
+
+void COMD::hget(){
+    int l=5,r=5;
+    printf("GETing\n");
+    while(comd->buf[r]!=','){
+        r++;
+    }
+    SDS key;
+    key.refresh(*comd,l,r);
+    l=++r;
+    while(comd->buf[r]!=')'){
+        r++;
+    }
+    SDS field;
+    field.refresh(*comd,l,r);
+    Value* value=datetable.find(key);
+    if(value==nullptr||value->tpye==0){
+        perror("Value not exist");
+    }
+    else{
+        if(value->tpye==3){
+            SDS* sds=value->hashtable->find(field);
+            if(sds!=nullptr){
+                sds->print();
+            }
+            else{
+                perror("Value not exist");
+            }
+        }
+    }
 }

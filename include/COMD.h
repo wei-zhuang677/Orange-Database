@@ -1,8 +1,9 @@
 #ifndef COMD_H
 #define COMD_H
 #include "SDS.h"
-#include"HashTable.h"
+#include"DateTable.h"
 #include"List.h"
+#include"HashTable.h"
 #include<thread>
 class COMD;
 class COMD {
@@ -28,6 +29,8 @@ public:
     void lrange();
     void popr();
     void popl();
+    void hset();
+    void hget();
 };
 
 #endif

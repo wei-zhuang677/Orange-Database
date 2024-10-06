@@ -4,7 +4,7 @@
 #include<iostream>
 #include"SDS.h"
 #include"COMD.h"
-#include"HashTable.h"
+#include"DateTable.h"
 char buf[BUFSIZ];
 int strlen(char *str){
     int len=0;
@@ -54,7 +54,7 @@ int main()
         COMD *comd=nullptr;
         first=new COMD();
         next=first;
-     //   int num=0;
+        int num=0;
         while(buf[l]!=';'){
 //std::cout<<"first"<<"  "<<first<<"  "<<"first->next"<<"   "<<first->next<<std::endl;
             if(buf[r]=='\n'&&r-l>2){
@@ -62,7 +62,7 @@ int main()
                 next->next=comd;
                 next=comd;
                 l=r+1;
-             //   num++;
+                num++;
             
             }
             if(buf[r]==';'){
@@ -70,7 +70,7 @@ int main()
                 next->next=comd;
                 next=comd;
                 l=r;
-            //    num++;
+                num++;
             
             }
             r++;
@@ -80,7 +80,7 @@ int main()
         next=first;
         first=first->next;
         delete next;
-      //  std::cout<<num<<std::endl;
+       // std::cout<<num<<std::endl;
         while(first!=nullptr){
             
             

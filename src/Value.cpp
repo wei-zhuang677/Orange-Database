@@ -10,31 +10,45 @@ Value::Value(){
 Value::Value(SDS& sds){
     this->sds=new SDS(sds);
     list=nullptr;
+    hashtable=nullptr;
     tpye=1;
 }
 
 Value::Value(List& list){
     this->list=new List(list);
-  
     sds=nullptr;
+    hashtable=nullptr;
     tpye=2;
+}
+
+Value::Value(HashTable& hashtable){
+    //rintf("djsjoi\n");
+    this->hashtable=new HashTable(hashtable);
+    sds=nullptr;
+    list=nullptr;
+    tpye=3;
 }
 Value::Value(const Value& value){
     tpye=value.tpye;
     
     switch (tpye)
     {
-    case 1:
+    case 1:{
         this->sds=new SDS(*value.sds);
         list=nullptr;
-        tpye=1;
-        break;
-    case 2:
+        hashtable=nullptr;
+        break;}
+    case 2:{
         this->list=new List(*value.list);
         sds=nullptr;
-        tpye=2;
- //   case 0:
-       // sds= new SDS(*(value.sds));
+        hashtable=nullptr;
+        break;}
+    case 3:{
+        this->hashtable=new HashTable(*value.hashtable);
+        sds=nullptr;
+        list=nullptr;
+        break;
+    }
     default:
         break;
     }
@@ -52,21 +66,28 @@ Value& Value::operator=(const Value& value){
     this->sds=nullptr;
     delete this->list;
     this->list=nullptr;
+    delete this->hashtable;
+    this->hashtable=nullptr;
     tpye=value.tpye;
     switch (tpye)
     {
     case 1:{
         this->sds=new SDS(*value.sds);
         list=nullptr;
-        tpye=1;
+        hashtable=nullptr;
         break;}
     case 2:{
         this->list=new List(*value.list);
         sds=nullptr;
-        tpye=2;
+        hashtable=nullptr;
         break;
         }
-        
+    case 3:{
+        this->hashtable=new HashTable(*value.hashtable);
+        sds=nullptr;
+        list=nullptr;
+        break;
+    }    
     default:
         break;
     }
