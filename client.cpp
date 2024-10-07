@@ -42,7 +42,7 @@ int main()
             buf[l]=c;
             if(c==';'){
                 buf[++l]='\0';
-                printf("%d\n",l);
+              //  printf("%d\n",l);
                 write(client,buf,l+1);
                 //   printf("返回：%s    %d\n",buf,ret);
                 getchar();
@@ -56,11 +56,17 @@ int main()
             break;
         }
         printf("返回：\n");
+        int len;
         while(1){
-            int len=read(client,buf,BUFSIZ);
-            printf("len:%d",len);
-            if(buf[0]!='!'){
-                printf("%s",buf);
+            len=read(client,buf,BUFSIZ);
+          //  printf("len:%d \n",len);
+            if(buf[0]!='!'&&len!=0){
+                for(int i=0;i<BUFSIZ;i++)
+                    printf("%c",buf[i]);
+                printf("\n");
+            /*   for(int i=0;i<len;i++)
+                    buf[i]='\0';*/ 
+                
             }
             else{
                 printf("返回完毕\n");
@@ -68,7 +74,9 @@ int main()
             }
 
         }
-        
+        if(len==0)
+            break;
+
     }
       close(client);
 

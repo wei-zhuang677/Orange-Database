@@ -1,6 +1,9 @@
 #ifndef SDS_H
 #define SDS_H
 #include<iostream>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <unistd.h>
 class SDS {
 public:
     void print();
@@ -16,7 +19,7 @@ public:
     void refresh(SDS& sds,int l=0,int r=0);
     int len,free;
     SDS& operator=(const SDS& other);
-    
+    void print(int clietst);
 };
 
 #endif

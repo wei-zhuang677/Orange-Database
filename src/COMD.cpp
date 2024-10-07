@@ -57,51 +57,51 @@ COMD::~COMD(){
     delete comd;
 }
 
-void COMD::run(){
+void COMD::run(int clientst){
    //head.print();
     if (head == com_get) {
-        get();
+        get(clientst);
     } else if (head == com_set) {
-        set();
+        set(clientst);
     } else if (head == com_delete) {
-        delet();
+        delet(clientst);
     }else if(head == com_odbsave){
-        odbsave();
+        odbsave(clientst);
     } else if(head == com_odbload){
         odbload();
     }else if(head ==com_resave){
         resave();
     }else if(head ==com_save){
-        save();
+        save(clientst);
     }else if(head == com_addl){
-        addl();
+        addl(clientst);
     }else if(head ==com_addr){
-        addr();
+        addr(clientst);
     }else if(head ==com_lindex){
-        lindex();
+        lindex(clientst);
     }else if(head==com_lrange){
-        lrange();
+        lrange(clientst);
     }else if(head==com_popr){
-        popr();
+        popr(clientst);
     }
     else if(head==com_popl){
-        popl();
+        popl(clientst);
     }else if(head==com_hset){
-        hset(); 
+        hset(clientst); 
     }else if(head==com_hget){
-        hget();
+        hget(clientst);
     }else if(head==com_sadd){
-        sadd();
+        sadd(clientst);
     }else if(head==com_smembers){
-        smembers();
+        smembers(clientst);
     }else if(head==com_srem){
-        srem();
+        srem(clientst);
     }else{
         perror("Illegal Input");
     }
 }
 
-void COMD::set(){
+void COMD::set(int clientst){
     int l=4,r=4;
    // comd->print();
     while(comd->buf[r]!=','){
@@ -123,14 +123,18 @@ void COMD::set(){
   //  value.sds.print();
     Value* vvalue=datetable.find(key);
     if(vvalue==nullptr||vvalue->tpye==1||value.tpye==0){
-          datetable.insert(key,value);
+        datetable.insert(key,value);
+        char buf[BUFSIZ]="Setting Success";
+        write(clientst,buf,BUFSIZ);
     }
     else{
-         perror("That is not a SDS.Pleaes delete frist");
+        datetable.insert(key,value);
+        char buf[BUFSIZ]="That is not a SDS.Pleaes delete frist";
+        write(clientst,buf,BUFSIZ);
     }
 }
 
-void COMD::get(){
+void COMD::get(int clientst){
     int l=4,r=4;
    // comd->print();
     while(comd->buf[r]!=')'){
@@ -141,15 +145,18 @@ void COMD::get(){
     key.refresh(*comd,l,r);
     Value* value=datetable.find(key);
     if (value != nullptr&&value->tpye==1){
-        printf("GET:");
+        char buf[BUFSIZ]="GET:";
+        write(clientst,buf,BUFSIZ);
+        value->sds->print(clientst);
         value->sds->print();
     } else {
-        perror("Value not found");
+        char buf[BUFSIZ]="Value not found";
+        write(clientst,buf,BUFSIZ);
     }
  
 }
 
-void COMD::delet(){
+void COMD::delet(int clientst){
     int l=7,r=7;
     //printf("Deleting\n");
     while(comd->buf[r]!=')'){
@@ -162,21 +169,28 @@ void COMD::delet(){
     if(value!=nullptr){
         Value value;
         datetable.insert(key,value);
+        char buf[BUFSIZ]="Delete success";
+        write(clientst,buf,BUFSIZ);
     }
     else{
-        perror("Value not exist");
+        char buf[BUFSIZ]="Value not exist";
+        write(clientst,buf,BUFSIZ);
     }
 }
 
-void COMD::odbsave(){
-    printf("saving\n");
+void COMD::odbsave(int clientst){
+    char buf[BUFSIZ]="Saving";
+    write(clientst,buf,BUFSIZ);
     std::thread t(&DateTable::odbsave,&datetable);
     t.join();
+    char buff[BUFSIZ]="Save finished";
+    write(clientst,buff,BUFSIZ);
 }
 
 void COMD::odbload(){
     printf("loading\n");
     datetable.odbload();
+  //  perror("njknn");
 }
 
 void COMD::resave(){
@@ -184,12 +198,13 @@ void COMD::resave(){
     std::thread t(&DateTable::odbsave,&datetable);
     t.detach();
 }
+
 void COMD::odbluach(){
     std::thread t(&DateTable::checkAndSave,&datetable);
     t.detach();
 }
 
-void COMD::save(){
+void COMD::save(int clientst){
     int l=5,r=5,a=0,b=0;
     while(comd->buf[r]!=','){
         a=a*10+(int)comd->buf[r]-48;
@@ -201,9 +216,11 @@ void COMD::save(){
         r++;
     }
     datetable.updateConfig(a,b);
+    char buf[BUFSIZ]="Update finished";
+    write(clientst,buf,BUFSIZ);
 }
 
-void COMD::addl(){
+void COMD::addl(int clientst){
     int l=5,r=5;
    // comd->print();
     while(comd->buf[r]!=','){
@@ -217,12 +234,15 @@ void COMD::addl(){
         r++;
     }
     sds.refresh(*comd,l,r);
+    sds.print();
     Value* value=datetable.find(key);
     if(value==nullptr||value->tpye==0){
         List list;
         list.addl(sds);
         Value nvalue(list);
-        datetable.insert(key,*value);
+        datetable.insert(key,nvalue);
+        char buf[BUFSIZ]="Setting Success";
+        write(clientst,buf,BUFSIZ);
     }
     else
     {
@@ -230,19 +250,22 @@ void COMD::addl(){
             List list(*value->list);
             list.addl(sds);
             Value nvalue(list);
-            datetable.insert(key,*value);
+            datetable.insert(key,nvalue);
+            char buf[BUFSIZ]="Setting Success";
+            write(clientst,buf,BUFSIZ);
         }
         else{
-            perror("That is not a list.Pleaes delete frist");
+            char buf[BUFSIZ]="That is not a list.Pleaes delete frist";
+            write(clientst,buf,BUFSIZ);
         }
     }
     
     
 }
 
-void COMD::addr(){
+void COMD::addr(int clientst){
     int l=5,r=5;
-    
+    comd->print();
     while(comd->buf[r]!=','){
         r++;
     }
@@ -259,7 +282,9 @@ void COMD::addr(){
         List list;
         list.addr(sds);
         Value nvalue(list);
-        datetable.insert(key,*value);
+        datetable.insert(key,nvalue);
+        char buf[BUFSIZ]="Setting Success";
+        write(clientst,buf,BUFSIZ);
     }
     else
     {
@@ -267,17 +292,20 @@ void COMD::addr(){
             List list(*value->list);
             list.addr(sds);
             Value nvalue(list);
-            datetable.insert(key,*value);
+            datetable.insert(key,nvalue);
+            char buf[BUFSIZ]="Setting Success";
+            write(clientst,buf,BUFSIZ);
         }
         else{
-            perror("That is not a list.Pleaes delete frist");
+            char buf[BUFSIZ]="That is not a list.Pleaes delete frist";
+            write(clientst,buf,BUFSIZ);
         }
     }
     
     
 }
 
-void COMD::lindex(){
+void COMD::lindex(int clientst){
     int l=7,r=7;
     int index=0;
     while(comd->buf[r]!=','){
@@ -294,24 +322,27 @@ void COMD::lindex(){
     Value* value=datetable.find(key);
     if(value==nullptr||value->tpye==0)
     {
-        perror("Value not exist");
+        char buf[BUFSIZ]="List not exist";
+        write(clientst,buf,BUFSIZ);
         return;
     }
     if(value->tpye==2){
         List::Node* node=value->list->lindex(index);
         if(node!=nullptr){
-            node->value->print();
+            node->value->print(clientst);
         }
         else{
-            perror("Value not exist");
+            char buf[BUFSIZ]="Value not exist";
+            write(clientst,buf,BUFSIZ);
         }
     }
     else{
-        perror("That is not a list");
+        char buf[BUFSIZ]="That is not a list";
+        write(clientst,buf,BUFSIZ);
     }
 }
 
-void COMD::lrange(){
+void COMD::lrange(int clientst){
     int l=7,r=7;
     int start=0,stop=0;
     while(comd->buf[r]!=','){
@@ -330,37 +361,43 @@ void COMD::lrange(){
         r++;
     }
     if(start>stop){
-        perror("Start is bigger than stop");
+        char buf[BUFSIZ]="Start is bigger than stop";
+        write(clientst,buf,BUFSIZ);
         return;
     }
     Value* value=datetable.find(key);
     if(value==nullptr||value->tpye==0)
-    {
-        perror("Value not exist");
+    {   
+        char buf[BUFSIZ]="List not exist";
+        write(clientst,buf,BUFSIZ);
         return;
     }
     if(value->tpye==2){
         if(stop>=value->list->len){
-            perror("List is not enough");
+            char buf[BUFSIZ]="List is not enough long";
+            write(clientst,buf,BUFSIZ);
             return;
         }
         List::Node* node=value->list->lindex(start);
         if(node==nullptr){
-            perror("Wrong start");
+            char buf[BUFSIZ]="Wrong start";
+            write(clientst,buf,BUFSIZ);
             return;
         }
-        printf("List:\n");
+        char buf[BUFSIZ]="List:";
+        write(clientst,buf,BUFSIZ);
         for(int i=start;i<=stop;i++){
-            node->value->print();
+            node->value->print(clientst);
             node=node->next;
         }
     }
     else{
-        perror("That is not a list");
+        char buf[BUFSIZ]="That is not a list";
+        write(clientst,buf,BUFSIZ);
     }
 }
 
-void COMD::popr(){
+void COMD::popr(int clientst){
     int l=5,r=5; 
     while(comd->buf[r]!=')'){
         r++;
@@ -369,7 +406,8 @@ void COMD::popr(){
     key.refresh(*comd,l,r);
     Value* value=datetable.find(key);
     if(value==nullptr||value->tpye==0){
-        perror("Value not exist");
+        char buf[BUFSIZ]="List not exist";
+        write(clientst,buf,BUFSIZ);
         return;
     }
     else{
@@ -379,12 +417,18 @@ void COMD::popr(){
              //   nvalue.list->print();
                 nvalue.list->popr();
                 datetable.insert(key,nvalue);
+                char buf[BUFSIZ]="Delete finished";
+                write(clientst,buf,BUFSIZ);
             }
             else{
+                char buf[BUFSIZ]="This list is empty";
+                write(clientst,buf,BUFSIZ);
                 perror("This list is empty");
             }
         }
         else{
+            char buf[BUFSIZ]="TThat is not a list";
+            write(clientst,buf,BUFSIZ);
             perror("That is not a list");
         }
     }
@@ -392,7 +436,7 @@ void COMD::popr(){
     
 }
 
-void COMD::popl(){
+void COMD::popl(int clientst){
     int l=5,r=5; 
     while(comd->buf[r]!=')'){
         r++;
@@ -401,6 +445,8 @@ void COMD::popl(){
     key.refresh(*comd,l,r);
     Value* value=datetable.find(key);
     if(value==nullptr||value->tpye==0){
+        char buf[BUFSIZ]="List not exist";
+        write(clientst,buf,BUFSIZ);
         perror("Value not exist");
         return;
     }
@@ -411,19 +457,25 @@ void COMD::popl(){
 //                nvalue.list->print();
                 nvalue.list->popl();
                 datetable.insert(key,nvalue);
+                char buf[BUFSIZ]="Delete finished";
+                write(clientst,buf,BUFSIZ);
             }
             else{
+                char buf[BUFSIZ]="This list is empty";
+                write(clientst,buf,BUFSIZ);
                 perror("This list is empty");
             }
         }
         else{
+            char buf[BUFSIZ]="This is not a list";
+            write(clientst,buf,BUFSIZ);
             perror("This is not a list");
         }
     }
     
 }
 
-void COMD::hset(){
+void COMD::hset(int clientst){
     int l=5,r=5;
     while(comd->buf[r]!=','){
         r++;
@@ -448,6 +500,8 @@ void COMD::hset(){
         hashtable.insert(field,sds);
         Value nvalue(hashtable);
         datetable.insert(key,nvalue);
+        char buf[BUFSIZ]="Setting success";
+        write(clientst,buf,BUFSIZ);
     }
     else{
         if(value->tpye==3){
@@ -455,8 +509,12 @@ void COMD::hset(){
             hashtable.insert(field,sds);
             Value nvalue(hashtable);
             datetable.insert(key,nvalue);
+            char buf[BUFSIZ]="Setting success";
+            write(clientst,buf,BUFSIZ);
         }
         else{
+            char buf[BUFSIZ]="This is not a HashTable";
+            write(clientst,buf,BUFSIZ);
             perror("This is not a HashTable");
         }
     }
@@ -464,7 +522,7 @@ void COMD::hset(){
 
 }
 
-void COMD::hget(){
+void COMD::hget(int clientst){
     int l=5,r=5;
     
     while(comd->buf[r]!=','){
@@ -480,23 +538,29 @@ void COMD::hget(){
     field.refresh(*comd,l,r);
     Value* value=datetable.find(key);
     if(value==nullptr||value->tpye==0){
+        char buf[BUFSIZ]="Value not exist";
+        write(clientst,buf,BUFSIZ);
         perror("Value not exist");
     }
     else{
         if(value->tpye==3){
-            printf("GETing\n");
+           /* char buf[BUFSIZ]="HashTable:";
+            write(clientst,buf,BUFSIZ);
+            printf("HashTable:\n");*/
             SDS* sds=value->hashtable->find(field);
             if(sds!=nullptr){
-                sds->print();
+                sds->print(clientst);
             }
             else{
-                perror("Value not exist");
+                char buf[BUFSIZ]="This is not in HashTable";
+                write(clientst,buf,BUFSIZ);
+                perror("This is not in HashTable");
             }
         }
     }
 }
 
-void COMD::sadd(){
+void COMD::sadd(int clientst){
     int l=5,r=5;
     while(comd->buf[r]!=','){
         r++;
@@ -516,10 +580,15 @@ void COMD::sadd(){
         Value nvalue(hashtable);
         nvalue.tpye=4;
         datetable.insert(key,nvalue);
+        char buf[BUFSIZ]="Setting success";
+        write(clientst,buf,BUFSIZ);
+        
     }
     else{
         if(value->tpye==4){
             if(value->hashtable->find(field)!=nullptr){
+                char buf[BUFSIZ]="This value is already in the set";
+                write(clientst,buf,BUFSIZ);
                 perror("This value is already in the set");
                 return;
             }
@@ -528,16 +597,19 @@ void COMD::sadd(){
             Value nvalue(hashtable);
             nvalue.tpye=4;
             datetable.insert(key,nvalue);
+            char buf[BUFSIZ]="Setting success";
+            write(clientst,buf,BUFSIZ);
         }
         else{
+            char buf[BUFSIZ]="This is not a SET";
+            write(clientst,buf,BUFSIZ);
             perror("This is not a SET");
         }
     }
 }
 
-void  COMD::smembers(){
+void  COMD::smembers(int clientst){
     int l=9,r=9;
-    printf("GETing\n");
     while(comd->buf[r]!=')'){
         r++;
     }
@@ -545,27 +617,33 @@ void  COMD::smembers(){
     key.refresh(*comd,l,r);
     Value* value=datetable.find(key);
     if(value==nullptr||value->tpye==0){
+        char buf[BUFSIZ]="Value not exist";
+        write(clientst,buf,BUFSIZ);
         perror("Value not exist");
     }
     else{
         if(value->tpye==4){
+            char buf[BUFSIZ]="Set:";
+            write(clientst,buf,BUFSIZ);
             printf("SET:\n");
             HashTable* hashtable=value->hashtable;
             for(int i=0;i<hashtable->size;i++){
                 HashTable::Node* current=hashtable->buckets[i];
                 while(current!=nullptr){
-                    current->value->print();
+                    current->value->print(clientst);
                     current=current->next;
                 }
             }
             }
             else{
+                char buf[BUFSIZ]="This is not a SET";
+                write(clientst,buf,BUFSIZ);
                 perror("This is not a set");
             }
         }
 }
 
-void COMD::srem(){
+void COMD::srem(int clientst){
     int l=5,r=5;
     while(comd->buf[r]!=','){
         r++;
@@ -580,11 +658,15 @@ void COMD::srem(){
     SDS field;
     field.refresh(*comd,l,r);
     if(value==nullptr||value->tpye==0){
+        char buf[BUFSIZ]="Value not exist";
+        write(clientst,buf,BUFSIZ);
         perror("Value not exist");
     }
     else{
         if(value->tpye==4){
             if(value->hashtable->find(field)==nullptr){
+                char buf[BUFSIZ]="This value is not in the set";
+                write(clientst,buf,BUFSIZ);
                 perror("This value is not in the set");
                 return;
             }
@@ -593,8 +675,12 @@ void COMD::srem(){
             Value nvalue(hashtable);
             nvalue.tpye=4;
             datetable.insert(key,nvalue);
+            char buf[BUFSIZ]="Delete finished";
+            write(clientst,buf,BUFSIZ);
         }
         else{
+            char buf[BUFSIZ]="This is not a SET";
+            write(clientst,buf,BUFSIZ);
             perror("This is not a SET");
         }
     }

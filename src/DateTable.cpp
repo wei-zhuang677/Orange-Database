@@ -321,9 +321,10 @@ void DateTable::odbload(){
         }
     
         infile.get(type);
+        
     }
     
-      
+    //  perror("ckds");
     infile.close();
 
 

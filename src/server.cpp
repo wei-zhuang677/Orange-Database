@@ -6,6 +6,7 @@
 #include"COMD.h"
 #include"DateTable.h"
 #include<thread>
+const char beginn[20]="begin";
 char buf[BUFSIZ];
 int strlen(char *str){
     int len=0;
@@ -13,10 +14,12 @@ int strlen(char *str){
         len++;
     return len;
 }
-void clientwork(int clientst){
+int clientt[1000];
+void clientwork(int client){
+    int* clientst=new int(client);
     while(1)
     {
-        int ret=read(clientst,buf,BUFSIZ);
+        int ret=read(*clientst,buf,BUFSIZ);
         if(ret==0)
             break;
         int l=0,r=0;
@@ -48,23 +51,29 @@ void clientwork(int clientst){
         next=first;
         first=first->next;
         delete next;
+        
         while(first!=nullptr){
             
             
-            first->run();
+            first->run(*clientst);
             next=first;
             first=first->next;
             delete next;
         }
+        //getchar();
         buf[0]='!';
-        write(clientst,buf,1); 
+        buf[1]='\0';
+     //   printf("\n");
+        write(*clientst,buf,BUFSIZ); 
+       // printf("\n");
         for(int i=0;i<ret;i++)
             buf[i]='\0';
         
     }
     COMD Comd;
-    Comd.odbsave();
-    close(clientst);
+    Comd.resave();
+    close(*clientst);
+    delete clientst;
 }
 int main()
 {
@@ -96,9 +105,11 @@ int main()
     Comd.odbluach();
     while(1){
         int client=accept(server,NULL,NULL);
+        printf("Accpet\n");
         std::thread t(clientwork,client);
         t.detach();
     }
+    
     close(server);
 
 

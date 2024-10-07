@@ -108,3 +108,20 @@ void SDS::print(){
         printf("%c",buf[i]);
     printf("\n");
 }
+
+void SDS::print(int clietst){ 
+    
+    int buf[BUFSIZ];
+    int i=0;
+    while(i<len){
+        buf[i]=this->buf[i];
+        i++;
+    }
+    while(i<BUFSIZ){
+        buf[i]='\0';
+        i++;
+    }
+    for(int j=0;j<BUFSIZ;j++)
+        printf("%c",buf[j]);
+    write(clietst,buf,BUFSIZ);   perror("nfsnfls");   
+}
