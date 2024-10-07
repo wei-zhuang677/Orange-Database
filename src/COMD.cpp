@@ -48,7 +48,7 @@ COMD::COMD(char *buf,int l,int r){
     comd=new SDS(buf,l,r);
     next=nullptr;
     int t=l;
-    while(buf[t]!='('&&buf[t]!=';')
+    while(buf[t]!='('&&buf[t]!=';'&&buf[t]!='\n')
         t++;
     head.refresh(buf,l,t);
 }

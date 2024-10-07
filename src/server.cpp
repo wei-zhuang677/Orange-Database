@@ -7,6 +7,9 @@
 #include"DateTable.h"
 #include<thread>
 const char beginn[20]="begin";
+const char committ[20]="commit";
+SDS com_commit(committ);
+SDS com_beginn(beginn);
 char buf[BUFSIZ];
 int strlen(char *str){
     int len=0;
@@ -15,66 +18,123 @@ int strlen(char *str){
     return len;
 }
 int clientt[1000];
+void work(COMD* first,int clientst){
+    printf("Working\n");
+    while(first!=nullptr){            
+        first->run(clientst);
+        COMD* next=first;
+        first=first->next;
+        delete next;
+    }
+}
 void clientwork(int client){
     int* clientst=new int(client);
-    while(1)
-    {
-        int ret=read(*clientst,buf,BUFSIZ);
+       
+    int ret;
+    int num=0;
+    COMD *first=nullptr;
+    COMD *next=nullptr;
+    COMD *comd=nullptr;
+    while(1){
+        ret=read(*clientst,buf,BUFSIZ);
+        printf("read\n");
         if(ret==0)
             break;
         int l=0,r=0;
-        COMD *first=nullptr;
-        COMD *next=nullptr;
-        COMD *comd=nullptr;
-        first=new COMD();
-        next=first;
-        int num=0;
         while(buf[l]!=';'){
             if(buf[r]=='\n'){
-                comd=new COMD(buf,l,r);
-                next->next=comd;
-                next=comd;
-                l=r+1;
-                num++;
-            
-            }
+                    comd=new COMD(buf,l,r);
+                    
+                    if(first!=nullptr){
+                        if(comd->head==com_commit){
+                            if(first!=nullptr){
+                                work(first->next,*clientst);
+                                delete first;
+                                first=nullptr;
+                                delete comd;
+                            }
+                        }
+                        else{
+                            next->next=comd;
+                            next=comd;
+                            char buf[BUFSIZ]="ADDED";
+                            write(*clientst,buf,BUFSIZ);
+                            num++;
+                        }
+                    }
+                    else{
+                        if(comd->head==com_beginn){
+                            if(first!=nullptr){
+                                char buf[BUFSIZ]="Do not begin twice";
+                                write(*clientst,buf,BUFSIZ);
+                            }
+                            else{
+                                first=comd;
+                                next=first;
+                            }
+                        }
+                        else{
+                             char buf[BUFSIZ]="Illegal Input";
+                             write(*clientst,buf,BUFSIZ);
+                        }
+                        
+                    }
+                    l=r+1;
+                }
             if(buf[r]==';'){
-                comd=new COMD(buf,l,r);
-                next->next=comd;
-                next=comd;
-                l=r;
-                num++;
-            
-            }
+                    comd=new COMD(buf,l,r);
+                    if(first!=nullptr){
+                        if(comd->head==com_commit){
+                            if(first!=nullptr){
+                                work(first->next,*clientst);
+                                delete first;
+                                first=nullptr;
+                                delete comd;
+                            }
+                        }
+                        else{
+                            next->next=comd;
+                            next=comd;
+                            char buf[BUFSIZ]="ADDED";
+                            write(*clientst,buf,BUFSIZ);
+                            num++;
+                        }
+                    }
+                    else{
+                        if(comd->head==com_beginn){
+                            if(first!=nullptr){
+                                char buf[BUFSIZ]="Do not begin twice";
+                                write(*clientst,buf,BUFSIZ);
+                            }
+                            else{
+                                first=comd;
+                                next=first;
+                            }
+                        }
+                        else{
+                             char buf[BUFSIZ]="Illegal Input";
+                             write(*clientst,buf,BUFSIZ);
+                        }
+                        
+                    }
+                    l=r;
+                
+                }
             r++;
         }
-        next=first;
-        first=first->next;
-        delete next;
-        
-        while(first!=nullptr){
-            
-            
-            first->run(*clientst);
-            next=first;
-            first=first->next;
-            delete next;
-        }
-        //getchar();
         buf[0]='!';
         buf[1]='\0';
-     //   printf("\n");
         write(*clientst,buf,BUFSIZ); 
-       // printf("\n");
         for(int i=0;i<ret;i++)
             buf[i]='\0';
-        
     }
+       
     COMD Comd;
     Comd.resave();
     close(*clientst);
     delete clientst;
 }
+
 int main()
 {
     int  server=socket(AF_INET,SOCK_STREAM,0);
