@@ -18,7 +18,7 @@ int main()
 
     struct sockaddr_in client_address;
     client_address.sin_family=AF_INET;
-    client_address.sin_port=htons(8888);
+    client_address.sin_port=htons(8880);
     client_address.sin_addr.s_addr=INADDR_ANY;
 
     if(connect(client,(struct sockaddr*)&client_address,sizeof(client_address))<0){
@@ -28,32 +28,48 @@ int main()
     }
 
     while(1)
-      {
-         printf("输入：");
-         int l=0;
-         while(1)
-         {
-            char c=getchar();
+    {
+        printf("输入：\n");
+        int l=0;
+        char c=getchar();
+        while(1)
+        {
             if(c=='!')
-              break;
+            {
+                write(client,buf,0);
+                break;
+            }
             buf[l]=c;
             if(c==';'){
                 buf[++l]='\0';
                 printf("%d\n",l);
                 write(client,buf,l+1);
-                int ret=read(client,buf,BUFSIZ);
-             //   printf("返回：%s    %d\n",buf,ret);
-                l=-1;
+                //   printf("返回：%s    %d\n",buf,ret);
                 getchar();
-
+                break;
             }
+            c=getchar();
             l++;
-            
-         }
-         
-        break;
+        }
+        if(c=='!'){
+            printf("连接断开\n");
+            break;
+        }
+        printf("返回：\n");
+        while(1){
+            int len=read(client,buf,BUFSIZ);
+            printf("len:%d",len);
+            if(buf[0]!='!'){
+                printf("%s",buf);
+            }
+            else{
+                printf("返回完毕\n");
+                break;
+            }
+
+        }
         
-      }
+    }
       close(client);
 
 }
