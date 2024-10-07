@@ -8,6 +8,8 @@
 #include<thread>
 const char beginn[20]="begin";
 const char committ[20]="commit";
+const char resett[20]="reset";
+SDS com_reestt(resett);
 SDS com_commit(committ);
 SDS com_beginn(beginn);
 char buf[BUFSIZ];
@@ -54,7 +56,17 @@ void clientwork(int client){
                                 delete comd;
                             }
                         }
-                        else{
+                        else if(comd->head==com_reestt){
+                            while(first!=nullptr){
+                                COMD* net=first->next;
+                                delete first;
+                                first=net;
+                            }
+                            delete comd;
+                            char buf[BUFSIZ]="Reset success";
+                            write(*clientst,buf,BUFSIZ);
+                            
+                        }else {
                             next->next=comd;
                             next=comd;
                             char buf[BUFSIZ]="ADDED";
@@ -69,6 +81,8 @@ void clientwork(int client){
                                 write(*clientst,buf,BUFSIZ);
                             }
                             else{
+                                char buf[BUFSIZ]="Begin success";
+                                write(*clientst,buf,BUFSIZ);
                                 first=comd;
                                 next=first;
                             }
@@ -92,7 +106,17 @@ void clientwork(int client){
                                 delete comd;
                             }
                         }
-                        else{
+                        else if(comd->head==com_reestt){
+                            while(first!=nullptr){
+                                COMD* net=first->next;
+                                delete first;
+                                first=net;
+                            }
+                            delete comd;
+                            char buf[BUFSIZ]="Reset success";
+                            write(*clientst,buf,BUFSIZ);
+                            
+                        }else {
                             next->next=comd;
                             next=comd;
                             char buf[BUFSIZ]="ADDED";
@@ -107,6 +131,8 @@ void clientwork(int client){
                                 write(*clientst,buf,BUFSIZ);
                             }
                             else{
+                                char buf[BUFSIZ]="Begin success";
+                                write(*clientst,buf,BUFSIZ);
                                 first=comd;
                                 next=first;
                             }
