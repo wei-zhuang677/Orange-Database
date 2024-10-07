@@ -163,8 +163,9 @@ void DateTable::odbsave(){
                 }
                 outfile<<'\n';
                 break;}
+            case 4:
             case 3:{
-                outfile<<3<<';';
+                outfile<<value->tpye<<';';
                 for(int j=0;j<node->key.len;j++)
                     outfile<<node->key.buf[j];
                 outfile<<';';
@@ -274,6 +275,7 @@ void DateTable::odbload(){
             this->insert(key,value); 
             break;
         }
+        case '4':
         case '3':{
             int l=0;
             char c;
@@ -308,6 +310,7 @@ void DateTable::odbload(){
                 infile.get(c);
             }
             Value value(hashtable);
+            value.tpye=(int)type-48;
             this->insert(key,value);
             break;
         }

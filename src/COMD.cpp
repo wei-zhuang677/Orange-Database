@@ -17,6 +17,9 @@ const char popr[20]="popr";
 const char popl[20]="popl";
 const char hget[20]="hget";
 const char hset[20]="hset";
+const char sadd[20]="sadd";
+const char smembers[20]="smembers";
+const char srem[20]="srem";
 SDS com_get(strget);
 SDS com_set(strset);
 SDS com_delete(strdelete);
@@ -32,6 +35,9 @@ SDS com_popr(popr);
 SDS com_popl(popl);
 SDS com_hset(hset);
 SDS com_hget(hget);
+SDS com_sadd(sadd);
+SDS com_smembers(smembers);
+SDS com_srem(srem);
 DateTable datetable;
 COMD::COMD(){
     comd=nullptr;
@@ -84,7 +90,11 @@ void COMD::run(){
         hset(); 
     }else if(head==com_hget){
         hget();
-    }else{
+    }else if(head==com_sadd){
+        sadd();
+    }else if(head==com_smembers){
+        smembers();
+    }else {
         perror("Illegal Input");
     }
 }
@@ -454,7 +464,7 @@ void COMD::hset(){
 
 void COMD::hget(){
     int l=5,r=5;
-    printf("GETing\n");
+    
     while(comd->buf[r]!=','){
         r++;
     }
@@ -472,6 +482,7 @@ void COMD::hget(){
     }
     else{
         if(value->tpye==3){
+            printf("GETing\n");
             SDS* sds=value->hashtable->find(field);
             if(sds!=nullptr){
                 sds->print();
@@ -481,4 +492,74 @@ void COMD::hget(){
             }
         }
     }
+}
+
+void COMD::sadd(){
+    int l=5,r=5;
+    while(comd->buf[r]!=','){
+        r++;
+    }
+    SDS key;
+    key.refresh(*comd,l,r);
+    Value* value=datetable.find(key);
+    l=++r;
+    while(comd->buf[r]!=')'){
+        r++;
+    }
+    SDS field;
+    field.refresh(*comd,l,r);
+    if(value==nullptr||value->tpye==0){
+        HashTable hashtable;
+        hashtable.insert(field,field);
+        Value nvalue(hashtable);
+        nvalue.tpye=4;
+        datetable.insert(key,nvalue);
+    }
+    else{
+        if(value->tpye==4){
+            if(value->hashtable->find(field)!=nullptr){
+                perror("This value is already in the set");
+                return;
+            }
+            HashTable hashtable(*value->hashtable);
+            hashtable.insert(field,field);
+            Value nvalue(hashtable);
+            nvalue.tpye=4;
+            datetable.insert(key,nvalue);
+        }
+        else{
+            perror("This is not a SET");
+        }
+    }
+}
+
+void  COMD::smembers(){
+    int l=9,r=9;
+    printf("GETing\n");
+    while(comd->buf[r]!=')'){
+        r++;
+    }
+    SDS key;
+    key.refresh(*comd,l,r);
+    Value* value=datetable.find(key);
+    if(value==nullptr||value->tpye==0){
+        perror("Value not exist");
+    }
+    else{
+        if(value->tpye==4){
+            printf("SET:\n");
+            HashTable* hashtable=value->hashtable;
+            for(int i=0;i<hashtable->size;i++){
+                HashTable::Node* current=hashtable->buckets[i];
+                while(current!=nullptr){
+                    current->value->print();
+                    current=current->next;
+                }
+            }
+            }
+            else{
+                perror("This is not a set");
+            }
+        }
+    
 }

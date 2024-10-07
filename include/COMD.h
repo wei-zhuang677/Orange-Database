@@ -31,6 +31,9 @@ public:
     void popl();
     void hset();
     void hget();
+    void sadd();
+    void smembers();
+    void srem();
 };
 
 #endif

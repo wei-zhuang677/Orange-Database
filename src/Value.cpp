@@ -4,6 +4,7 @@ Value::Value(){
     tpye=0;
     sds=nullptr;
     list=nullptr;
+    hashtable=nullptr;
 //    key=nullptr;
 }
 
@@ -43,6 +44,7 @@ Value::Value(const Value& value){
         sds=nullptr;
         hashtable=nullptr;
         break;}
+    case 4:
     case 3:{
         this->hashtable=new HashTable(*value.hashtable);
         sds=nullptr;
@@ -57,6 +59,7 @@ Value::Value(const Value& value){
 Value::~Value(){
     delete sds;
     delete list;
+    delete hashtable;
     //delete key;
 }
 
@@ -82,6 +85,7 @@ Value& Value::operator=(const Value& value){
         hashtable=nullptr;
         break;
         }
+    case 4:
     case 3:{
         this->hashtable=new HashTable(*value.hashtable);
         sds=nullptr;
