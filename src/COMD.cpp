@@ -94,7 +94,9 @@ void COMD::run(){
         sadd();
     }else if(head==com_smembers){
         smembers();
-    }else {
+    }else if(head==com_srem){
+        srem();
+    }else{
         perror("Illegal Input");
     }
 }
@@ -561,5 +563,39 @@ void  COMD::smembers(){
                 perror("This is not a set");
             }
         }
-    
+}
+
+void COMD::srem(){
+    int l=5,r=5;
+    while(comd->buf[r]!=','){
+        r++;
+    }
+    SDS key;
+    key.refresh(*comd,l,r);
+    Value* value=datetable.find(key);
+    l=++r;
+    while(comd->buf[r]!=')'){
+        r++;
+    }
+    SDS field;
+    field.refresh(*comd,l,r);
+    if(value==nullptr||value->tpye==0){
+        perror("Value not exist");
+    }
+    else{
+        if(value->tpye==4){
+            if(value->hashtable->find(field)==nullptr){
+                perror("This value is not in the set");
+                return;
+            }
+            HashTable hashtable(*value->hashtable);
+            hashtable.delet(field);
+            Value nvalue(hashtable);
+            nvalue.tpye=4;
+            datetable.insert(key,nvalue);
+        }
+        else{
+            perror("This is not a SET");
+        }
+    }
 }

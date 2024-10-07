@@ -18,9 +18,13 @@ HashTable::HashTable(HashTable& hashtable){
     for(int i=0;i<size;i++){
         Node* current=hashtable.buckets[i];
         while(current!=nullptr){
+            if(current->b){
+                current=current->next;
+                this->count--;
+                continue;
+            }
             Node* newNode = new Node;
             newNode->key = current->key;
-            //value.sds->print();
             newNode->value = new SDS(*current->value);
             newNode->next = buckets[i];
             buckets[i] = newNode;
@@ -132,4 +136,17 @@ SDS* HashTable::find(SDS& key){
     //perror("No value");
     return nullptr;
     
+}
+
+void HashTable::delet(SDS& key){
+    int hash=hashCode(key);
+    Node* current = buckets[hash];
+    while (current != nullptr) {
+
+        if (current->key == key) {
+            current->b=1;
+            return;
+        }
+        current = current->next;
+    }
 }

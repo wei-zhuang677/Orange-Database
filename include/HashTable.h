@@ -10,11 +10,12 @@ public:
     void insert(SDS& key, SDS& value);
     SDS* find(SDS& key);
     int size;
-   
+    void delet(SDS& key);
     struct Node{
         SDS* value=nullptr;
         Node* next=nullptr;
         SDS key;
+        bool b=0;
     };
       Node** buckets;
 private:
