@@ -57,51 +57,53 @@ COMD::~COMD(){
     delete comd;
 }
 
-void COMD::run(int clientst){
+void COMD::run(int clientst,int id,Readview* readview){
    //head.print();
     if (head == com_get) {
-        get(clientst);
+        get(clientst,id,readview);
     } else if (head == com_set) {
-        set(clientst);
+        set(clientst,id,readview);
     } else if (head == com_delete) {
-        delet(clientst);
+        delet(clientst,id,readview);
     }else if(head == com_odbsave){
-        odbsave(clientst);
+        odbsave(clientst,id);
     } else if(head == com_odbload){
         odbload();
     }else if(head ==com_resave){
         resave();
     }else if(head ==com_save){
-        save(clientst);
+        save(clientst,id);
     }else if(head == com_addl){
-        addl(clientst);
+        addl(clientst,id,readview);
     }else if(head ==com_addr){
-        addr(clientst);
+        addr(clientst,id,readview);
     }else if(head ==com_lindex){
-        lindex(clientst);
+        lindex(clientst,id,readview);
     }else if(head==com_lrange){
-        lrange(clientst);
+        lrange(clientst,id,readview);
     }else if(head==com_popr){
-        popr(clientst);
+        popr(clientst,id,readview);
     }
     else if(head==com_popl){
-        popl(clientst);
+        popl(clientst,id,readview);
     }else if(head==com_hset){
-        hset(clientst); 
+        hset(clientst,id,readview); 
     }else if(head==com_hget){
-        hget(clientst);
+        hget(clientst,id,readview);
     }else if(head==com_sadd){
-        sadd(clientst);
+        sadd(clientst,id,readview);
     }else if(head==com_smembers){
-        smembers(clientst);
+        smembers(clientst,id,readview);
     }else if(head==com_srem){
-        srem(clientst);
+        srem(clientst,id,readview);
     }else{
+        char buff[BUFSIZ]="Illegal Input";
+        write(clientst,buff,BUFSIZ);
         perror("Illegal Input");
     }
 }
 
-void COMD::set(int clientst){
+void COMD::set(int clientst,int id,Readview* readview){
     int l=4,r=4;
    // comd->print();
     while(comd->buf[r]!=','){
@@ -114,27 +116,28 @@ void COMD::set(int clientst){
     while(comd->buf[r]!=')'){
         r++;
     }
-   // printf("L:%d R:%d ",l,r);
     sds.refresh(*comd,l,r);
     Value value(sds);
-  //  printf("value:");
- //   sds.print();
-  //  printf("SET:");
-  //  value.sds.print();
+    value.work_id=id;
     Value* vvalue=datetable.find(key);
+    while(vvalue!=nullptr&&!readview->check(vvalue->work_id)){
+        if(vvalue->work_id==id)
+            break;
+        vvalue=vvalue->pre;
+    }
     if(vvalue==nullptr||vvalue->tpye==1||value.tpye==0){
         datetable.insert(key,value);
         char buf[BUFSIZ]="Setting Success";
         write(clientst,buf,BUFSIZ);
     }
     else{
-        datetable.insert(key,value);
         char buf[BUFSIZ]="That is not a SDS.Pleaes delete frist";
         write(clientst,buf,BUFSIZ);
     }
+    
 }
 
-void COMD::get(int clientst){
+void COMD::get(int clientst,int id,Readview* readview){
     int l=4,r=4;
    // comd->print();
     while(comd->buf[r]!=')'){
@@ -144,19 +147,29 @@ void COMD::get(int clientst){
     SDS key;
     key.refresh(*comd,l,r);
     Value* value=datetable.find(key);
+    if(value==nullptr){
+        char buf[BUFSIZ]="Value not found";
+        write(clientst,buf,BUFSIZ);
+        return;
+    }
+    while(value!=nullptr&&!readview->check(value->work_id)){
+        if(value->work_id==id)
+            break;
+        value=value->pre;
+    }
     if (value != nullptr&&value->tpye==1){
         char buf[BUFSIZ]="GET:";
         write(clientst,buf,BUFSIZ);
         value->sds->print(clientst);
         value->sds->print();
     } else {
-        char buf[BUFSIZ]="Value not found";
+        char buf[BUFSIZ]="This not a SDS";
         write(clientst,buf,BUFSIZ);
     }
  
 }
 
-void COMD::delet(int clientst){
+void COMD::delet(int clientst,int id,Readview* readview){
     int l=7,r=7;
     //printf("Deleting\n");
     while(comd->buf[r]!=')'){
@@ -166,8 +179,14 @@ void COMD::delet(int clientst){
     key.refresh(*comd,l,r);
     //key.print();
     Value* value=datetable.find(key);
+while(value!=nullptr&&!readview->check(value->work_id)){
+        if(value->work_id==id)
+            break;
+        value=value->pre;
+    }
     if(value!=nullptr){
         Value value;
+        value.work_id=id;
         datetable.insert(key,value);
         char buf[BUFSIZ]="Delete success";
         write(clientst,buf,BUFSIZ);
@@ -178,7 +197,7 @@ void COMD::delet(int clientst){
     }
 }
 
-void COMD::odbsave(int clientst){
+void COMD::odbsave(int clientst,int id){
     char buf[BUFSIZ]="Saving";
     write(clientst,buf,BUFSIZ);
     std::thread t(&DateTable::odbsave,&datetable);
@@ -204,7 +223,7 @@ void COMD::odbluach(){
     t.detach();
 }
 
-void COMD::save(int clientst){
+void COMD::save(int clientst,int id){
     int l=5,r=5,a=0,b=0;
     while(comd->buf[r]!=','){
         a=a*10+(int)comd->buf[r]-48;
@@ -220,7 +239,7 @@ void COMD::save(int clientst){
     write(clientst,buf,BUFSIZ);
 }
 
-void COMD::addl(int clientst){
+void COMD::addl(int clientst,int id,Readview* readview){
     int l=5,r=5;
    // comd->print();
     while(comd->buf[r]!=','){
@@ -236,10 +255,16 @@ void COMD::addl(int clientst){
     sds.refresh(*comd,l,r);
     sds.print();
     Value* value=datetable.find(key);
+    while(value!=nullptr&&!readview->check(value->work_id)){
+        if(value->work_id==id)
+            break;
+        value=value->pre;
+    }
     if(value==nullptr||value->tpye==0){
         List list;
         list.addl(sds);
         Value nvalue(list);
+        nvalue.work_id=id;
         datetable.insert(key,nvalue);
         char buf[BUFSIZ]="Setting Success";
         write(clientst,buf,BUFSIZ);
@@ -250,6 +275,7 @@ void COMD::addl(int clientst){
             List list(*value->list);
             list.addl(sds);
             Value nvalue(list);
+            nvalue.work_id=id;
             datetable.insert(key,nvalue);
             char buf[BUFSIZ]="Setting Success";
             write(clientst,buf,BUFSIZ);
@@ -263,7 +289,7 @@ void COMD::addl(int clientst){
     
 }
 
-void COMD::addr(int clientst){
+void COMD::addr(int clientst,int id,Readview* readview){
     int l=5,r=5;
     comd->print();
     while(comd->buf[r]!=','){
@@ -278,10 +304,16 @@ void COMD::addr(int clientst){
     }
     sds.refresh(*comd,l,r);
     Value* value=datetable.find(key);
+    while(value!=nullptr&&!readview->check(value->work_id)){
+        if(value->work_id==id)
+            break;
+        value=value->pre;
+    }
     if(value==nullptr||value->tpye==0){
         List list;
         list.addr(sds);
         Value nvalue(list);
+        nvalue.work_id=id;
         datetable.insert(key,nvalue);
         char buf[BUFSIZ]="Setting Success";
         write(clientst,buf,BUFSIZ);
@@ -292,6 +324,7 @@ void COMD::addr(int clientst){
             List list(*value->list);
             list.addr(sds);
             Value nvalue(list);
+            nvalue.work_id=id;
             datetable.insert(key,nvalue);
             char buf[BUFSIZ]="Setting Success";
             write(clientst,buf,BUFSIZ);
@@ -305,7 +338,7 @@ void COMD::addr(int clientst){
     
 }
 
-void COMD::lindex(int clientst){
+void COMD::lindex(int clientst,int id,Readview* readview){
     int l=7,r=7;
     int index=0;
     while(comd->buf[r]!=','){
@@ -320,6 +353,11 @@ void COMD::lindex(int clientst){
     }
     
     Value* value=datetable.find(key);
+    while(value!=nullptr&&!readview->check(value->work_id)){
+        if(value->work_id==id)
+            break;
+        value=value->pre;
+    }
     if(value==nullptr||value->tpye==0)
     {
         char buf[BUFSIZ]="List not exist";
@@ -342,7 +380,7 @@ void COMD::lindex(int clientst){
     }
 }
 
-void COMD::lrange(int clientst){
+void COMD::lrange(int clientst,int id,Readview* readview){
     int l=7,r=7;
     int start=0,stop=0;
     while(comd->buf[r]!=','){
@@ -366,6 +404,11 @@ void COMD::lrange(int clientst){
         return;
     }
     Value* value=datetable.find(key);
+    while(value!=nullptr&&!readview->check(value->work_id)){
+        if(value->work_id==id)
+            break;
+        value=value->pre;
+    }
     if(value==nullptr||value->tpye==0)
     {   
         char buf[BUFSIZ]="List not exist";
@@ -397,7 +440,7 @@ void COMD::lrange(int clientst){
     }
 }
 
-void COMD::popr(int clientst){
+void COMD::popr(int clientst,int id,Readview* readview){
     int l=5,r=5; 
     while(comd->buf[r]!=')'){
         r++;
@@ -405,6 +448,11 @@ void COMD::popr(int clientst){
     SDS key;
     key.refresh(*comd,l,r);
     Value* value=datetable.find(key);
+    while(value!=nullptr&&!readview->check(value->work_id)){
+        if(value->work_id==id)
+            break;
+        value=value->pre;
+    }
     if(value==nullptr||value->tpye==0){
         char buf[BUFSIZ]="List not exist";
         write(clientst,buf,BUFSIZ);
@@ -416,6 +464,7 @@ void COMD::popr(int clientst){
                 Value nvalue(*value->list);
              //   nvalue.list->print();
                 nvalue.list->popr();
+                nvalue.work_id=id;
                 datetable.insert(key,nvalue);
                 char buf[BUFSIZ]="Delete finished";
                 write(clientst,buf,BUFSIZ);
@@ -436,7 +485,7 @@ void COMD::popr(int clientst){
     
 }
 
-void COMD::popl(int clientst){
+void COMD::popl(int clientst,int id,Readview* readview){
     int l=5,r=5; 
     while(comd->buf[r]!=')'){
         r++;
@@ -444,6 +493,11 @@ void COMD::popl(int clientst){
     SDS key;
     key.refresh(*comd,l,r);
     Value* value=datetable.find(key);
+    while(value!=nullptr&&!readview->check(value->work_id)){
+        if(value->work_id==id)
+            break;
+        value=value->pre;
+    }
     if(value==nullptr||value->tpye==0){
         char buf[BUFSIZ]="List not exist";
         write(clientst,buf,BUFSIZ);
@@ -456,6 +510,7 @@ void COMD::popl(int clientst){
                 Value nvalue(*value->list);
 //                nvalue.list->print();
                 nvalue.list->popl();
+                nvalue.work_id=id;
                 datetable.insert(key,nvalue);
                 char buf[BUFSIZ]="Delete finished";
                 write(clientst,buf,BUFSIZ);
@@ -475,7 +530,7 @@ void COMD::popl(int clientst){
     
 }
 
-void COMD::hset(int clientst){
+void COMD::hset(int clientst,int id,Readview* readview){
     int l=5,r=5;
     while(comd->buf[r]!=','){
         r++;
@@ -495,10 +550,16 @@ void COMD::hset(int clientst){
     }
     SDS sds;
     sds.refresh(*comd,l,r);
+    while(value!=nullptr&&!readview->check(value->work_id)){
+        if(value->work_id==id)
+            break;
+        value=value->pre;
+    }
     if(value==nullptr||value->tpye==0){
         HashTable hashtable;
         hashtable.insert(field,sds);
         Value nvalue(hashtable);
+        nvalue.work_id=id;
         datetable.insert(key,nvalue);
         char buf[BUFSIZ]="Setting success";
         write(clientst,buf,BUFSIZ);
@@ -508,6 +569,7 @@ void COMD::hset(int clientst){
             HashTable hashtable(*value->hashtable);
             hashtable.insert(field,sds);
             Value nvalue(hashtable);
+            nvalue.work_id=id;
             datetable.insert(key,nvalue);
             char buf[BUFSIZ]="Setting success";
             write(clientst,buf,BUFSIZ);
@@ -522,7 +584,7 @@ void COMD::hset(int clientst){
 
 }
 
-void COMD::hget(int clientst){
+void COMD::hget(int clientst,int id,Readview* readview){
     int l=5,r=5;
     
     while(comd->buf[r]!=','){
@@ -537,6 +599,11 @@ void COMD::hget(int clientst){
     SDS field;
     field.refresh(*comd,l,r);
     Value* value=datetable.find(key);
+    while(value!=nullptr&&!readview->check(value->work_id)){
+        if(value->work_id==id)
+            break;
+        value=value->pre;
+    }
     if(value==nullptr||value->tpye==0){
         char buf[BUFSIZ]="Value not exist";
         write(clientst,buf,BUFSIZ);
@@ -560,7 +627,7 @@ void COMD::hget(int clientst){
     }
 }
 
-void COMD::sadd(int clientst){
+void COMD::sadd(int clientst,int id,Readview* readview){
     int l=5,r=5;
     while(comd->buf[r]!=','){
         r++;
@@ -574,11 +641,17 @@ void COMD::sadd(int clientst){
     }
     SDS field;
     field.refresh(*comd,l,r);
+    while(value!=nullptr&&!readview->check(value->work_id)){
+        if(value->work_id==id)
+            break;
+        value=value->pre;
+    }
     if(value==nullptr||value->tpye==0){
         HashTable hashtable;
         hashtable.insert(field,field);
         Value nvalue(hashtable);
         nvalue.tpye=4;
+        nvalue.work_id=id;
         datetable.insert(key,nvalue);
         char buf[BUFSIZ]="Setting success";
         write(clientst,buf,BUFSIZ);
@@ -596,6 +669,7 @@ void COMD::sadd(int clientst){
             hashtable.insert(field,field);
             Value nvalue(hashtable);
             nvalue.tpye=4;
+            nvalue.work_id=id;
             datetable.insert(key,nvalue);
             char buf[BUFSIZ]="Setting success";
             write(clientst,buf,BUFSIZ);
@@ -608,7 +682,7 @@ void COMD::sadd(int clientst){
     }
 }
 
-void  COMD::smembers(int clientst){
+void  COMD::smembers(int clientst,int id,Readview* readview){
     int l=9,r=9;
     while(comd->buf[r]!=')'){
         r++;
@@ -616,6 +690,11 @@ void  COMD::smembers(int clientst){
     SDS key;
     key.refresh(*comd,l,r);
     Value* value=datetable.find(key);
+    while(value!=nullptr&&!readview->check(value->work_id)){
+        if(value->work_id==id)
+            break;
+        value=value->pre;
+    }
     if(value==nullptr||value->tpye==0){
         char buf[BUFSIZ]="Value not exist";
         write(clientst,buf,BUFSIZ);
@@ -643,7 +722,7 @@ void  COMD::smembers(int clientst){
         }
 }
 
-void COMD::srem(int clientst){
+void COMD::srem(int clientst,int id,Readview* readview){
     int l=5,r=5;
     while(comd->buf[r]!=','){
         r++;
@@ -657,6 +736,11 @@ void COMD::srem(int clientst){
     }
     SDS field;
     field.refresh(*comd,l,r);
+    while(value!=nullptr&&!readview->check(value->work_id)){
+        if(value->work_id==id)
+            break;
+        value=value->pre;
+    }
     if(value==nullptr||value->tpye==0){
         char buf[BUFSIZ]="Value not exist";
         write(clientst,buf,BUFSIZ);
@@ -673,6 +757,7 @@ void COMD::srem(int clientst){
             HashTable hashtable(*value->hashtable);
             hashtable.delet(field);
             Value nvalue(hashtable);
+            nvalue.work_id=id;
             nvalue.tpye=4;
             datetable.insert(key,nvalue);
             char buf[BUFSIZ]="Delete finished";

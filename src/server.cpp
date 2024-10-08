@@ -1,17 +1,20 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <unistd.h>
+#include"Readview.h"
 #include<iostream>
 #include"SDS.h"
 #include"COMD.h"
 #include"DateTable.h"
 #include<thread>
+#include <mutex>
 const char beginn[20]="begin";
 const char committ[20]="commit";
 const char resett[20]="reset";
 SDS com_reestt(resett);
 SDS com_commit(committ);
 SDS com_beginn(beginn);
+Readview view;
 char buf[BUFSIZ];
 int strlen(char *str){
     int len=0;
@@ -19,15 +22,26 @@ int strlen(char *str){
         len++;
     return len;
 }
+int n_id=1;
 int clientt[1000];
 void work(COMD* first,int clientst){
     printf("Working\n");
+    view.id_mtx.lock();
+    int id=n_id;
+    n_id++;
+    view.add(id);
+    Readview* readview=new Readview(view);
+    view.id_mtx.unlock();
     while(first!=nullptr){            
-        first->run(clientst);
+        first->run(clientst,id,readview);
         COMD* next=first;
         first=first->next;
         delete next;
     }
+    view.id_mtx.lock();
+    view.pop(id);
+    view.id_mtx.unlock();
+    delete readview;
 }
 void clientwork(int client){
     int* clientst=new int(client);

@@ -3,7 +3,7 @@
 SDS::SDS(){
     len=0;
     free=0;
-    buf=new char[0];
+    buf=new char[1];
 }
 SDS::SDS(const char* c,int l,int r){
     len=0;

@@ -6,21 +6,28 @@ DateTable::DateTable(){
     interval=20;
     threshold=5;
     buckets = new Node*[size];
+    bk_mtx =new std::mutex[size];
     for(int j=0;j<size;j++){
-        buckets[j]=nullptr;
+        buckets[j]=new Node;
     }
 }
 DateTable::~DateTable() {
     for (int j = 0; j < size; ++j) {
         Node* current = buckets[j];
         while (current != nullptr) {
+            Value* value=current->value;
+            while(value!=nullptr){
+                Value* net=value->pre;
+                delete value;
+                value=net;
+            }
             Node* next = current->next;
-            delete current->value;
             delete current;
             current = next;
         }
     }
     delete[] buckets;
+    delete[] bk_mtx;
 }
 
 unsigned int DateTable::hashCode(SDS &key){
@@ -42,29 +49,27 @@ unsigned int DateTable::hashCode(SDS &key){
     return hash % size;
 }
 
-void DateTable::insert(SDS &key, const Value& value) {
-    int hash = hashCode(key);
-   // std::cout<<hash<<std::endl;
+void DateTable::insert(SDS &key, Value& value) {
+    int hash = hashCode(key); 
+    
     Node* current = buckets[hash];
     while (current != nullptr) {
-        
         if (current->key == key) {
-            *(current->value) = value;
+            current->write_mtx.lock();
+      
+            current->value=current->value->add(value);
+            current->write_mtx.unlock();
             printf("Setting Success\n");
-           
             return;
         }
         current = current->next;
     }
-
     Node* newNode = new Node;
     newNode->key = key;
-    //value.sds->print();
     newNode->value = new Value(value);
     newNode->next = buckets[hash];
     buckets[hash] = newNode;
     count++;
-    
     printf("Setting Successc\n");
     if (count > size * 0.75) { 
         resize();
@@ -97,8 +102,10 @@ void DateTable::resize() {
         }
     }
     delete[] buckets;
+    delete[] bk_mtx;
     buckets = newBuckets;
     size = newSize;
+    bk_mtx =new std::mutex[size];
 }
 
 Value* DateTable::find(SDS& key){
@@ -108,8 +115,6 @@ Value* DateTable::find(SDS& key){
     while (current != nullptr) {
 
         if (current->key == key) {
-            if(current->value->tpye==0)
-                return nullptr;
             return current->value;
         }
         current = current->next;
@@ -135,7 +140,7 @@ void DateTable::odbsave(){
         Node* node=buckets[i];
         while(node!=nullptr){
             Value* value=node->value;
-            if(value->tpye){
+            if(value!=nullptr&&value->tpye){
             switch (value->tpye)
             {
             case 1:{
@@ -240,6 +245,7 @@ void DateTable::odbload(){
             SDS sds(buf,0,l);
            
             Value value(sds); 
+                            value.work_id=0;
             this->insert(key,value);
             infile.get(c);
             break;
@@ -272,6 +278,7 @@ void DateTable::odbload(){
                 infile.get(c);
             }
             Value value(list);
+                value.work_id=0;
             this->insert(key,value); 
             break;
         }
@@ -310,6 +317,7 @@ void DateTable::odbload(){
                 infile.get(c);
             }
             Value value(hashtable);
+                value.work_id=0;
             value.tpye=(int)type-48;
             this->insert(key,value);
             break;
@@ -324,7 +332,7 @@ void DateTable::odbload(){
         
     }
     
-    //  perror("ckds");
+      //perror("ckds");
     infile.close();
 
 

@@ -12,7 +12,7 @@ class DateTable {
 public:
     DateTable();
     ~DateTable();
-    void insert(SDS& key,const Value& value);
+    void insert(SDS& key, Value& value);
     Value* find(SDS& key);
     void odbsave();
     void odbload();
@@ -20,9 +20,10 @@ public:
     void updateConfig(int a,int b);
 private:
     struct Node{
-        Value* value;
-        Node* next;
+        Value* value=nullptr;
+        Node* next=nullptr;
         SDS key;
+        std::mutex write_mtx;
     }; 
     int savedKeysCount;
     Node** buckets;
@@ -32,6 +33,7 @@ private:
     void resize();
     int interval,threshold;
     std::mutex mtx;
+    std::mutex* bk_mtx;
 };
 
 #endif
