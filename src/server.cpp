@@ -16,12 +16,6 @@ SDS com_commit(committ);
 SDS com_beginn(beginn);
 Readview view;
 char buf[BUFSIZ];
-int strlen(char *str){
-    int len=0;
-    while(str[len]!='\0')
-        len++;
-    return len;
-}
 int n_id=1;
 int clientt[1000];
 void work(COMD* first,int clientst){
@@ -208,11 +202,6 @@ int main()
         printf("Accpet\n");
         std::thread t(clientwork,client);
         t.detach();
-    }
-    
+    }   
     close(server);
-
-
-    
-
 }
