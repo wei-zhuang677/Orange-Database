@@ -58,7 +58,7 @@ COMD::~COMD(){
 }
 
 void COMD::run(int clientst,int id,Readview* readview){
-   //head.print();
+   head.print();
     if (head == com_get) {
         get(clientst,id,readview);
     } else if (head == com_set) {
@@ -139,7 +139,7 @@ void COMD::set(int clientst,int id,Readview* readview){
 
 void COMD::get(int clientst,int id,Readview* readview){
     int l=4,r=4;
-   // comd->print();
+    
     while(comd->buf[r]!=')'){
         r++;
     }
@@ -152,9 +152,14 @@ void COMD::get(int clientst,int id,Readview* readview){
         write(clientst,buf,BUFSIZ);
         return;
     }
+    
+    /*if(value!=nullptr)
+        comd->print();*/
     while(value!=nullptr&&!readview->check(value->work_id)){
+        
         if(value->work_id==id)
             break;
+        
         value=value->pre;
     }
     if (value != nullptr&&value->tpye==1){
@@ -179,7 +184,7 @@ void COMD::delet(int clientst,int id,Readview* readview){
     key.refresh(*comd,l,r);
     //key.print();
     Value* value=datetable.find(key);
-while(value!=nullptr&&!readview->check(value->work_id)){
+    while(value!=nullptr&&!readview->check(value->work_id)){
         if(value->work_id==id)
             break;
         value=value->pre;

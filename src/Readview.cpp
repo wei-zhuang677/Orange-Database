@@ -21,7 +21,7 @@ Readview::Readview(Readview& readview){
 }
 Readview::~Readview(){
     while(head!=nullptr){
-        printf("id: %d \n",head->at_id);
+
         Node* node=head->next;
         delete head;
         head=node;
