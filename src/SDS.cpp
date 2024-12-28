@@ -120,8 +120,8 @@ void SDS::print(int clietst){
     while(i<BUFSIZ){
         buf[i]='\0';
         i++;
-    }
+    }  
     for(int j=0;j<BUFSIZ;j++)
         printf("%c",buf[j]);
-    write(clietst,buf,BUFSIZ);   perror("nfsnfls");   
+    write(clietst,buf,BUFSIZ);  
 }

@@ -23,6 +23,7 @@ void work(COMD* first,int clientst){
     view.id_mtx.lock();
     int id=n_id;
     n_id++;
+    //printf("nddncn     id%d\n",id);
     view.add(id);
     Readview* readview=new Readview(view);
     view.id_mtx.unlock();
@@ -30,12 +31,15 @@ void work(COMD* first,int clientst){
         first->run(clientst,id,readview);
         COMD* next=first;
         first=first->next;
+        
         delete next;
+        
     }
+    
     view.id_mtx.lock();
     view.pop(id);
     view.id_mtx.unlock();
-    delete readview;
+    delete readview;printf("delete\n");
 }
 void clientwork(int client){
     int* clientst=new int(client);
@@ -162,13 +166,13 @@ void clientwork(int client){
         for(int i=0;i<ret;i++)
             buf[i]='\0';
     }
-       
     COMD Comd;
     Comd.resave();
     close(*clientst);
     delete clientst;
 }
-
+extern bool f;
+bool f=0;
 int main()
 {
     int  server=socket(AF_INET,SOCK_STREAM,0);
@@ -197,11 +201,16 @@ int main()
     COMD Comd;
     Comd.odbload();
     Comd.odbluach();
+    std::thread stop([](){getchar();f=1;
+    });
+    stop.detach();
     while(1){
         int client=accept(server,NULL,NULL);
         printf("Accpet\n");
         std::thread t(clientwork,client);
         t.detach();
-    }   
+        if(f)
+            break;
+    }
     close(server);
 }

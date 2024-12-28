@@ -340,7 +340,7 @@ void DateTable::odbload(){
 
 void DateTable::checkAndSave() {
 
-    while (true) {
+    while (!f) {
         int a=interval,b=threshold;
         std::this_thread::sleep_for(std::chrono::seconds(interval));
         mtx.lock();

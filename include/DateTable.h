@@ -8,6 +8,7 @@
 #include<iostream>
 #include<thread>
 #include <mutex>
+extern bool f;
 class DateTable {
 public:
     DateTable();

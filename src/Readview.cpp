@@ -10,20 +10,23 @@ Readview::Readview(Readview& readview){
     up_limit_id=readview.up_limit_id;
     low_limit_id=readview.low_limit_id;
     Node* current=readview.head;
+    head=nullptr;
     while(current!=nullptr){
         Node* node=new Node;
         node->at_id=current->at_id;
-        node->next=current->next;
+        node->next=head;
+        head=node;
         current=current->next;
     }
 }
-
 Readview::~Readview(){
     while(head!=nullptr){
+        printf("id: %d \n",head->at_id);
         Node* node=head->next;
         delete head;
         head=node;
     }
+    
 }
 
 void Readview::add(int id){
@@ -69,6 +72,7 @@ void Readview::pop(int id){
 }
 
 bool Readview::check(int id){
+    printf("%d\n",id);
     if(id<up_limit_id)
         return 1;
     if(id>=low_limit_id)
